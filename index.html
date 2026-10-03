@@ -1,0 +1,109 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#1e1e2e"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="FlowForge Studio — конструктор блок-схем: офлайн, PNG/SVG/PDF, JSON, PWA">
+<title>FlowForge Studio — конструктор блок-схем</title>
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon.svg"><link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<script defer src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script defer src="js/app.js"></script></head><body>
+<header id="top"><b class="logo">⚡ FlowForge</b><span class="pnl" id="pnl" data-a="menu" title="Название схемы"></span>
+<button data-a="undo" title="Отменить (Ctrl+Z)">↶</button><button data-a="redo" title="Повторить (Ctrl+Y)">↷</button>
+<span class="vr"></span>
+<button data-t="select" class="on" title="Выбор (V)">↖</button><button data-t="pan" title="Рука (H / пробел)">✋</button><button data-t="link" title="Связать: тап по двум блокам (C)">🔗</button>
+<span class="vr"></span>
+<button data-a="grp" title="Объединить выделенные блоки в группу (Ctrl+G)">▣</button><button data-a="route" id="routeBtn" title="Тип линий: плавные / угловые / прямые">〰</button>
+<span class="sep"></span>
+<button data-a="bg" title="Сменить фон">🎨</button><button data-a="menu" title="Меню и настройки">☰</button></header>
+<nav id="pal"></nav>
+<main id="stage"><svg id="cv"></svg>
+<div id="hud"><button data-a="zout">−</button><span id="info"></span><button data-a="zin">+</button><button data-a="fit" title="Показать всё (F)">⛶</button><button data-a="map" title="Мини-карта">🗺</button><button data-a="find" title="Поиск блока (Ctrl+F)">🔍</button></div>
+<div id="find" hidden><input id="fq" placeholder="Найти блок…" autocomplete="off"><span id="fc"></span><button data-a="fprev" title="Предыдущий">↑</button><button data-a="fnext" title="Следующий">↓</button><button data-a="fclose">✕</button></div>
+<aside id="insp" hidden>
+<div class="sec" id="s-text"><h4>Текст блока</h4><textarea id="pt" rows="2" placeholder="Текст блока"></textarea></div>
+<div class="sec" id="s-node"><h4>Блок</h4>
+<div class="row"><select id="pty"></select><input type="color" id="pc" title="Цвет"><button data-a="resetc" title="Сбросить цвет">↺</button></div>
+<div class="row"><select id="pf" title="Размер текста"><option value="12">Мелкий<option value="14">Обычный<option value="18">Крупный<option value="24">Огромный</select><button data-a="autosz" title="Вернуть авторазмер блока">⤢ Авто</button></div>
+<div class="row"><button data-a="dup" title="Копия">⧉</button><button data-a="lock" id="lockBtn" title="Закрепить / открепить">🔒</button><button data-a="front" title="На передний план">⬆</button><button data-a="back" title="На задний план">⬇</button></div>
+<small>Квадрат в углу блока — изменить размер</small></div>
+<div class="sec" id="s-multi"><h4>Выравнивание</h4><div class="algrid"><button data-al="l">⇤ Лево</button><button data-al="r">⇥ Право</button><button data-al="c">↔ Центр</button><button data-al="t">⤒ Верх</button><button data-al="b">⤓ Низ</button><button data-al="m">↕ Середина</button><button data-al="dh">⋯ По ширине</button><button data-al="dv">⋮ По высоте</button></div><button class="pri" data-a="grp">▣ Объединить в группу</button></div>
+<div class="sec" id="s-edge"><h4>Связь</h4><input id="pl" placeholder="Подпись (Да / Нет)">
+<div class="row"><select id="er" title="Тип линии"><option value="">Авто (общая)<option value="curve">Плавная<option value="ortho">Угловая (обход)<option value="line">Прямая</select><select id="ed" title="Стиль"><option value="solid">Сплошная<option value="dashed">Пунктир<option value="dotted">Точки<option value="dashdot">Штрих-точка</select></div>
+<div class="row w"><select id="ea" title="Стрелки"><option value="end">Стрелка →<option value="both">Стрелки ↔<option value="none">Без стрелок</select><select id="ew" title="Толщина"><option value="1">Тонкая<option value="2">Обычная<option value="3">Толстая<option value="5">Жирная</select><input type="color" id="ec" title="Цвет"><button data-a="resetec" title="Сбросить цвет">↺</button></div>
+<div class="row"><button data-a="rev">⇄ Развернуть</button><button data-a="rstpts" title="Убрать все изломы линии">↯ Сброс</button></div><small>Кружок на линии: потяните — получится излом. Двойной тап по излому — убрать.</small></div>
+<div class="sec" id="s-grp"><h4>Группа</h4><input id="gt" placeholder="Название группы"><div class="row"><input type="color" id="gc" title="Цвет"><button data-a="ungrp">Разгруппировать</button></div><small>Тяните за заголовок, чтобы двигать всю группу</small></div>
+<div class="sec"><button class="d" data-a="del">🗑 Удалить</button></div></aside>
+<svg id="mm" viewBox="0 0 180 120" preserveAspectRatio="none" aria-label="Мини-карта"></svg></main>
+
+<dialog id="menu" class="sheet"><div class="sh">
+<div class="sh-head"><div><b>⚡ FlowForge Studio</b><small>Конструктор блок-схем · v2.3</small></div><button class="x" data-close aria-label="Закрыть">✕</button></div>
+<div class="tabs"><button data-tab="file" class="on">📁 Файл</button><button data-tab="tpl">📚 Шаблоны</button><button data-tab="view">🎛 Вид</button><button data-tab="ai">🤖 ИИ</button><button data-tab="more">✨ Ещё</button></div>
+<div class="panes">
+<section data-pane="file">
+<h4>Текущая схема</h4><input id="pn" placeholder="Название схемы" maxlength="60">
+<h4>Мои схемы</h4><div id="plist" class="plist"></div>
+<h4>Схема</h4>
+<div class="cards c2"><button class="card" data-a="new"><i>➕</i><b>Новая</b><small>Пустая схема</small></button><button class="card" data-a="demo"><i>🧩</i><b>Пример</b><small>Заменит текущую</small></button>
+<button class="card" data-a="open"><i>📂</i><b>Открыть</b><small>Файл .json</small></button><button class="card" data-a="paste" data-keep><i>📋</i><b>Вставить</b><small>JSON или Mermaid</small></button></div>
+<h4>Сохранить и экспорт</h4>
+<div class="cards c2"><button class="card" data-a="json"><i>💾</i><b>JSON</b><small>Для редактирования</small></button><button class="card" data-a="png"><i>🖼</i><b>PNG</b><small>Картинка</small></button>
+<button class="card" data-a="svg"><i>✏️</i><b>SVG</b><small>Вектор</small></button><button class="card" data-a="pdf"><i>📕</i><b>PDF</b><small>Для печати</small></button>
+<button class="card" data-a="mmd"><i>🧜</i><b>Mermaid</b><small>Текст в буфер</small></button><button class="card" data-a="copypng"><i>📎</i><b>В буфер</b><small>Копия картинки</small></button>
+<button class="card wide" data-a="share"><i>📤</i><b>Поделиться</b><small>Отправить картинку в мессенджер</small></button></div>
+<div class="line"><span>Качество PNG</span><div class="seg" id="segSc"><button data-sc="1">1×</button><button data-sc="2">2×</button><button data-sc="3">3×</button></div></div>
+</section>
+<section data-pane="tpl" hidden>
+<p class="note">Готовые схемы для общепита и общие. Открываются как новая схема, текущая сохраняется в «Мои схемы».</p>
+<div class="cards" id="tpllist"></div>
+</section>
+<section data-pane="view" hidden>
+<h4>Фон холста</h4><div class="bgs" id="bgs"></div>
+<h4>Линии связей</h4>
+<div class="seg full" id="segRoute"><button data-route="curve">Плавные</button><button data-route="ortho">Угловые</button><button data-route="line">Прямые</button></div>
+<small class="note">Угловые линии огибают блоки. Для отдельной связи тип, стиль и стрелки меняются в панели справа.</small>
+<h4>Раскладка</h4>
+<div class="cards c2"><button class="card" data-a="tb"><i>↕</i><b>Вниз</b><small>Сверху вниз</small></button><button class="card" data-a="lr"><i>↔</i><b>Вправо</b><small>Слева направо</small></button></div>
+<h4>Параметры</h4>
+<label class="sw"><span>Привязка к сетке<small>Блоки прилипают к сетке 20 px</small></span><input type="checkbox" id="snap"><i></i></label>
+<label class="sw"><span>Мини-карта<small>Обзор всей схемы в углу</small></span><input type="checkbox" id="map"><i></i></label>
+<label class="sw"><span>Сетка<small>Точки на фоне холста</small></span><input type="checkbox" id="grid"><i></i></label>
+<label class="sw"><span>Умные направляющие<small>Подсказки и прилипание к другим блокам</small></span><input type="checkbox" id="guides"><i></i></label>
+<label class="sw"><span>Глубина 2.5D<small>Мягкие тени и «подъём» блоков при движении. На очень больших схемах отключается сама</small></span><input type="checkbox" id="depth"><i></i></label>
+<label class="sw"><span>Поток по линиям<small>Бегущие точки по связям: для показа и презентаций</small></span><input type="checkbox" id="flow"><i></i></label>
+<label class="sw"><span>Подпись в экспорте<small>Маленькая отметка автора на PNG/SVG/PDF</small></span><input type="checkbox" id="sig"><i></i></label>
+</section>
+<section data-pane="ai" hidden>
+<p class="note">Скачайте шаблон или скопируйте промпт, отдайте нейросети (ChatGPT, Claude, DeepSeek, Gemini), а ответ вставьте ниже. Принимаются JSON и Mermaid (flowchart TD …). Координаты не нужны: схема разложится сама.</p>
+<div class="cards c2"><button class="card" data-a="tpl"><i>📥</i><b>Шаблон</b><small>Файл .json</small></button><button class="card" data-a="prompt" data-keep><i>✨</i><b>Промпт</b><small>Копировать</small></button></div>
+<h4>Ответ нейросети</h4>
+<textarea id="pasteBox" rows="7" placeholder="Вставьте JSON или Mermaid (можно вместе с ```)"></textarea>
+<button class="pri big" id="pasteGo">Построить схему</button>
+</section>
+<section data-pane="more" hidden>
+<h4>Инструменты для технолога</h4>
+<div class="cards">
+<a class="card" href="https://smol0901-jpg.github.io/ph-metr/" target="_blank" rel="noopener"><i>🧪</i><b>pH-CHECK PRO</b><small>Контроль кислотности по нормам ХАССП</small></a>
+<a class="card" href="https://haccp-control.netlify.app" target="_blank" rel="noopener"><i>📋</i><b>HACCP Control</b><small>Электронный контроль ХАССП</small></a>
+<a class="card" href="https://smol0901-jpg.github.io/calculator/" target="_blank" rel="noopener"><i>🔥</i><b>DEFORM-1</b><small>Калькулятор ужарки, уварки, упечки</small></a>
+<a class="card" href="https://smol0901-jpg.github.io/neural-architect-premium-pages/" target="_blank" rel="noopener"><i>🧠</i><b>NEURAL ARCHITECT PREMIUM++</b><small>Все проекты автора в одном хабе</small></a></div>
+<h4>Автор и обратная связь</h4>
+<div class="cards">
+<a class="card" href="https://t.me/ASV_prod" target="_blank" rel="noopener"><i>✈️</i><b>Написать автору</b><small>Telegram · ASV_PROD</small></a>
+<a class="card" href="https://github.com/smol0901-jpg/block-on-main/issues/new" target="_blank" rel="noopener"><i>🐞</i><b>Сообщить об ошибке</b><small>GitHub Issues</small></a>
+<a class="card" href="https://github.com/smol0901-jpg" target="_blank" rel="noopener"><i>🐙</i><b>GitHub</b><small>smol0901-jpg · 55+ проектов</small></a>
+<button class="card" data-a="report" data-keep><i>📎</i><b>Данные для отчёта</b><small>Скопировать версию и параметры — вставьте в сообщение</small></button></div>
+<div id="instBox" hidden>
+<div class="cards"><button class="card" data-a="install" id="inst"><i>📲</i><b>Установить</b><small>Как приложение, работает офлайн</small></button></div></div>
+<h4>Установка как приложение</h4>
+<p class="note" id="insDone" hidden>✅ Вы уже используете установленное приложение.</p>
+<p class="note">Установленный FlowForge открывается в своём окне без адресной строки, с иконкой, и работает без интернета. Сначала один раз откройте сайт онлайн, чтобы всё загрузилось.</p>
+<details class="ins" id="ins-and"><summary>🤖 Android (Chrome)</summary><ol><li>Откройте сайт в <b>Chrome</b>.</li><li>Нажмите <b>⋮</b> (меню справа вверху).</li><li>Выберите <b>«Установить приложение»</b> (или «Добавить на главный экран») и подтвердите.</li><li>Иконка появится на главном экране и в списке приложений.</li></ol></details>
+<details class="ins" id="ins-ios"><summary>🍎 iPhone и iPad (Safari)</summary><ol><li>Откройте сайт именно в <b>Safari</b>.</li><li>Нажмите кнопку <b>«Поделиться»</b> (квадрат со стрелкой вверх).</li><li>Прокрутите список и выберите <b>«На экран Домой»</b>.</li><li>Нажмите <b>«Добавить»</b>. Иконка появится на экране «Домой».</li></ol><p class="note">Если пункта нет, прокрутите нижний ряд кнопок в меню «Поделиться» до конца и откройте «Изменить действия».</p></details>
+<details class="ins" id="ins-pc"><summary>💻 Windows, Mac, Linux (Chrome, Edge)</summary><ol><li>Откройте сайт в <b>Chrome</b> или <b>Edge</b>.</li><li>В правой части адресной строки нажмите значок установки (монитор со стрелкой) и выберите <b>«Установить»</b>.</li><li>Если значка нет: меню <b>⋮</b> → <b>«Установить FlowForge»</b> (в Edge: <b>…</b> → <b>Приложения</b> → <b>«Установить этот сайт как приложение»</b>).</li><li>Приложение появится в меню «Пуск» или Launchpad, его можно закрепить на панели задач.</li></ol><p class="note">Safari на Mac (macOS 14 и новее): меню «Файл» → «Добавить в Dock». Firefox на компьютере установку сайтов не поддерживает, используйте Chrome или Edge.</p></details>
+<details class="ins"><summary>❓ Обновление и удаление</summary><ul><li>Обновления подтягиваются сами: при запуске с интернетом новая версия загрузится, а применится при следующем открытии.</li><li>Удалить можно как обычное приложение: Android и iOS долгим нажатием на иконку, ПК через меню ⋮ в окне приложения → «Удалить».</li><li>Схемы хранятся в этом браузере или приложении. Для переноса между устройствами сохраните JSON.</li></ul></details>
+
+<details><summary>Жесты и горячие клавиши</summary><p class="note">Щипок — зум · пустое место — сдвиг · двойной тап по блоку — правка · кружок у блока — связь (в пустое место создаст новый блок) · Shift или рамка — мультивыбор · Ctrl+G — группа · Ctrl+F — поиск · квадрат в углу блока — размер · кружок на выбранной линии — излом · Ctrl+Z/Y · Ctrl+C/V/D · Del · F — показать всё · V/H/C — инструменты</p></details>
+<p class="foot">NEURAL_ARCHITECT_PREMIUM++ · ASV_PROD · MIT License</p>
+</section></div></div></dialog>
+<div id="toast" popover="manual"></div><input type="file" id="fi" accept=".json,application/json" hidden></body></html>
