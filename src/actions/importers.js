@@ -36,24 +36,47 @@ export function mermaidToDoc(src, opts = {}) {
   const lines = src.replace(/```(?:mermaid)?/gi, '').replace(/%%[^\n]*/g, '').split(/\n|;/).map(s => s.trim()).filter(Boolean);
   const dir = /\bLR\b|\bRL\b/.test(lines[0] || '') ? 'LR' : 'TD';
   const ids = new Map(), ns = [], es = [];
-  const node = (id, text, shapeHint) => {
-    if (!ids.has(id)) {
-      const type = shapeHint && (MM_TYPE[shapeHint.l] || MM_TYPE[shapeHint.r]) || 'process';
-      const rec = { id: 'n' + (ns.length + 1), type, text: text || id, x: 0, y: 0, layer: 'L1' };
+  const node = (id, text, shape) => {
+    let rec = ids.get(id);
+    if (!rec) {
+      rec = { id: 'n' + (ns.length + 1), type: MM_TYPE[shape] || 'process', text: text || id, x: 0, y: 0, layer: 'L1' };
       ids.set(id, rec); ns.push(rec);
-    } else if (text) ids.get(id).text = text;
-    return ids.get(id);
+    } else {
+      if (text) rec.text = text;
+      if (shape && MM_TYPE[shape]) rec.type = MM_TYPE[shape];
+    }
+    return rec;
   };
-  for (const ln of lines) {
-    if (/^(flowchart|graph)\b/i.test(ln)) continue;
-    let m;
-    if (m = ln.match(/^([\w$.-]+)\s*(\[\/|\[\(|\[\[|\(\(|\{|\[|\()/?\s*"([^"]*)"?\s*(\/\]|\)\]|]]|\)\)|\}|\])?\s*(-+|==+|-\.->|-->|\.{2,}>|==>)\s*\|?\s*"?([^"|>]*)"?\s*>?\s*([\w$.-]+)(?:\s*(\[\/|\[\(|\[\[|\(\(|\{|\[|\()?\s*"([^"]*)"?\s*(\/\]|\)\]|]]|\)\)|\}|\])?)?$/)) {
-      const a = node(m[1], m[3], { l: m[2], r: m[4] });
-      const b = node(m[6], m[8], { l: m[7], r: m[9] });
-      es.push({ id: 'e' + (es.length + 1), from: a.id, to: b.id, label: (m[5] || '').trim(), layer: 'L1' });
-    } else if (m = ln.match(/^([\w$.-]+)\s*(\[\/|\[\(|\[\[|\(\(|\{|\[|\()\s*"?([^"\]]*)"?\s*(\/\]|\)\]|]]|\)\)|\}|\])\s*$/)) {
-      node(m[1], m[3], { l: m[2], r: m[4] });
-    } else if (m = ln.match(/^([\w$.-]+)\s*$/)) { node(m[1]); }
+  // узел с опциональной формой: A["Текст"], B(Текст), C{{X}}, D[(Y)] …
+  const OPEN_RE = /^(\(\[|\[\/|\[\(|\(\(|\[\[|\{\{|\{)/;
+  const parseNode = tok => {
+    tok = String(tok).trim();
+    const m = tok.match(/^([A-Za-z][\w$.:-]*)(.*)$/s);
+    if (!m) return null;
+    let rest = m[2] || '';
+    const om = rest.match(OPEN_RE);
+    const shape = om ? om[1] : null;
+    if (shape) rest = rest.slice(shape.length);
+    rest = rest.replace(/(\]\)|\/\]|\)\)|\]\]|\}\}|\}|\))\s*$/, '');
+    const text = rest.trim().replace(/^"([\s\S]*)"$/, '$1').trim();
+    node(m[1], text, shape);
+    return m[1];
+  };
+  for (const raw of lines) {
+    let ln = raw;
+    if (/^(flowchart|graph|subgraph|end)\b/i.test(ln)) continue;
+    if (/^\s*direction\s+(TB|BT|LR|RL)\s*$/i.test(ln)) continue;
+    let m = ln.match(/^(.+?)\s*(-\.->|-+>|\.+->|==+>)\s*(?:\|([^"|]*)\|\s*)?(.+)$/);
+    if (m) {
+      const a = parseNode(m[1]), b = parseNode(m[4]);
+      if (a && b) {
+        const dashed = /^-\.->|\.+>/.test(m[2]), thick = m[2].startsWith('==');
+        const rec = ids.get(a), recB = ids.get(b);
+        es.push({ id: 'e' + (es.length + 1), from: rec.id, to: recB.id, label: (m[3] || '').trim(), ...(dashed ? { dash: '6 5' } : {}), ...(thick ? { width: 3.5 } : {}), layer: 'L1' });
+      }
+      continue;
+    }
+    parseNode(ln);
   }
   if (!ns.length) { toast('❌ Mermaid: ничего не распознано'); return false; }
   const r = applyDoc({ format: 'flowforge', version: '3.0', name: doc().name, nodes: ns, edges: es }, opts);

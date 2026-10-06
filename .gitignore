@@ -1,2 +1,7 @@
 # Dependencies
 node_modules/
+
+# Lock files (optional, but often ignored if using package-lock.json in git)
+# If you want to track package-lock.json, remove the next line. 
+# Since it was modified and is standard for npm projects to track lock files, I will NOT ignore it by default unless specified.
+# However, .package-lock.json inside node_modules is already covered by node_modules/.
