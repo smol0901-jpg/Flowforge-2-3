@@ -1,14 +1,14 @@
 'use strict';
 const $=s=>document.querySelector(s),svg=$('#cv'),NS='http://www.w3.org/2000/svg';
 const LS=(k,d)=>{try{return JSON.parse(localStorage[k])||d}catch{return d}};
-const T={terminal:['Начало','#a6e3a1'],process:['Действие','#89b4fa'],decision:['Условие?','#fab387'],io:['Ввод/Вывод','#cba6f7'],data:['Данные','#94e2d5'],sub:['Подпроцесс','#f9e2af'],note:['Заметка','#f5c2e7'],doc:['Документ','#f2cdcd'],prep:['Подготовка','#b4befe'],conn:['A','#bac2de'],manual:['Ввод','#74c7ec']};
-const TA={start:'terminal',end:'terminal',stop:'terminal',input:'io',output:'io',database:'data',db:'data',condition:'decision',if:'decision',subprocess:'sub',document:'doc',preparation:'prep',connector:'conn',manual_input:'manual',comment:'note'};
-const NAMES={terminal:'Старт/Конец',process:'Процесс',decision:'Условие',io:'Ввод/вывод',data:'Данные',sub:'Подпроцесс',note:'Заметка',doc:'Документ',prep:'Подготовка',conn:'Соединитель',manual:'Ручной ввод'},ICON={terminal:'⬭',process:'▭',decision:'◇',io:'▱',data:'🛢',sub:'⊟',note:'🗒',doc:'📃',prep:'⬡',conn:'◯',manual:'⌨'};
+const T={terminal:['Начало','#a6e3a1'],process:['Действие','#89b4fa'],decision:['Условие?','#fab387'],io:['Ввод/Вывод','#cba6f7'],data:['Данные','#94e2d5'],sub:['Подпроцесс','#f9e2af'],note:['Заметка','#f5c2e7'],doc:['Документ','#f2cdcd'],prep:['Подготовка','#b4befe'],conn:['A','#bac2de'],manual:['Ввод','#74c7ec'],check:['Чек-лист','#b5e8c4']};
+const TA={start:'terminal',end:'terminal',stop:'terminal',input:'io',output:'io',database:'data',db:'data',condition:'decision',if:'decision',subprocess:'sub',document:'doc',preparation:'prep',connector:'conn',manual_input:'manual',comment:'note',checklist:'check'};
+const NAMES={terminal:'Старт/Конец',process:'Процесс',decision:'Условие',io:'Ввод/вывод',data:'Данные',sub:'Подпроцесс',note:'Заметка',doc:'Документ',prep:'Подготовка',conn:'Соединитель',manual:'Ручной ввод',check:'Чек-лист'},ICON={terminal:'⬭',process:'▭',decision:'◇',io:'▱',data:'🛢',sub:'⊟',note:'🗒',doc:'📃',prep:'⬡',conn:'◯',manual:'⌨',check:'☑'};
 const PAL={dark:{bg:'#1e1e2e',dot:'#3a3c52',edge:'#89b4fa',txt:'#cdd6f4'},light:{bg:'#f6f7fb',dot:'#cdd2e2',edge:'#3b5bdb',txt:'#1f2430'},blue:{bg:'#0b3d91',dot:'#3b6bc2',edge:'#ffffff',txt:'#ffffff'},paper:{bg:'#fbf6e9',dot:'#ded3b5',edge:'#5c4a2a',txt:'#2b2315'},none:{bg:'transparent',dot:'#8886',edge:'#5c6bc0',txt:'#333333'}};
 const BGN={dark:'Тёмный',light:'Светлый',blue:'Синька',paper:'Бумага',none:'Прозрачный'};
-const VER='2.6',AUTHOR={tg:'https://t.me/ASV_prod',gh:'https://github.com/smol0901-jpg',bug:'https://github.com/smol0901-jpg/block-on-main/issues/new'};
+const VER='2.7',AUTHOR={tg:'https://t.me/ASV_prod',gh:'https://github.com/smol0901-jpg',bug:'https://github.com/smol0901-jpg/block-on-main/issues/new'};
 let S={nodes:[],edges:[],groups:[],cam:{x:60,y:40,k:1}},cfg={bg:'dark',snap:true,sig:true,sc:2,route:'curve',map:true,grid:true,guides:true,depth:true,flow:false,splash:true,nocross:false,noover:false,rad:10,gs:20,trace:true,...LS('ffCfg',{})},selG=null,MC=new Set(),MM=null,mmDrag=false;
-const ANIM=new Map(),NANIM=new Map(),DUR=420,REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;let LIFT=0,VEL={x:0,y:0},lastCamT=0,RB=null,full=true,rk0=1,tkOn=false,animOn=false,NCK='',NCR=new Map(),NCX=[],NCV=0,NCON=false,NCW=false,LP=null;
+const ANIM=new Map(),NANIM=new Map(),DUR=420,REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;let LIFT=0,VEL={x:0,y:0},lastCamT=0,RB=null,full=true,rk0=1,tkOn=false,animOn=false,NCK='',NCR=new Map(),NCX=[],NCV=0,NCON=false,NCW=false,LP=null,SVW=false;
 const DASH={solid:'',dashed:'9 6',dotted:'0.1 7',dashdot:'12 6 0.1 6'},hex6=c=>{c=String(c||'');if(/^#[0-9a-f]{3}$/i.test(c))c='#'+[...c.slice(1)].map(x=>x+x).join('');return/^#[0-9a-f]{6}$/i.test(c)?c.toLowerCase():null},pick=(o,ks)=>Object.fromEntries(ks.filter(k=>o[k]!=null&&o[k]!=='').map(k=>[k,o[k]]));
 let sel=new Set(),selE=null,tool='select',linkFrom=null,hist=[],hi=-1,clip=null,ov='',raf=0,space=false,last={t:0,id:0},NM=new Map(),g=null;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -18,28 +18,28 @@ const ink=c=>{c=c.replace('#','');if(c.length==3)c=[...c].map(x=>x+x).join('');c
 const nid=p=>{let i=1;const u=new Set([...S.nodes,...S.edges,...S.groups].map(o=>o.id));while(u.has(p+i))i++;return p+i};
 /* ---------- модель ---------- */
 const wrap=(t,m=16)=>{const o=[];String(t).split('\n').forEach(p=>{let l='';p.split(' ').forEach(w=>{if(l&&(l+' '+w).length>m){o.push(l);l=w}else l=l?l+' '+w:w});o.push(l)});return o};
-function sz(n,fs){const cw=fs*.6,lh=Math.round(fs*1.36),dc=n.type=='decision'?.62:1,m=n.sw?Math.max(3,Math.floor((n.sw*dc-26)/cw)):16,L=wrap(n.text,m),mx=Math.max(...L.map(s=>s.length),3);
-let w=Math.max(120,mx*cw*1.03+36),h=Math.max(56,L.length*lh+26);if(n.type=='decision'){w*=1.35;h=Math.max(84,h*1.5)}if(n.type=='io'||n.type=='prep')w+=24;if(n.type=='manual')h+=8;
+function sz(n,fs){const cw=fs*.6,lh=Math.round(fs*1.36),dc=n.type=='decision'?.62:1,m=n.sw?Math.max(3,Math.floor((n.sw*dc-26)/cw)):16,L=wrap(n.text,m),mx=Math.max(...L.map(s=>s.length),3),ck=n.ck||[],mi=n.sw?Math.max(3,m-3):22,IL=ck.map(it=>wrap(it.t||' ',mi)),il=IL.reduce((s,l)=>s+l.length,0),imx=Math.max(0,...IL.flat().map(s=>s.length));
+let w=Math.max(120,mx*cw*1.03+36,ck.length?imx*cw*1.03+fs+44:0),h=Math.max(56,L.length*lh+26+(ck.length?il*lh+ck.length*2+14:0));if(n.type=='decision'){w*=1.35;h=Math.max(84,h*1.5)}if(n.type=='io'||n.type=='prep')w+=24;if(n.type=='manual')h+=8;
 if(n.type=='conn')w=h=Math.max(48,Math.round(mx*cw+30));
 const aw=w,ah=h;if(n.sw)w=Math.max(60,n.sw);if(n.sh)h=Math.max(36,n.sh);if(n.type=='conn'&&(n.sw||n.sh))w=h=Math.max(n.sw||0,n.sh||0,40);
-return{w:Math.round(w),h:Math.round(h),L,lh,ok:(!n.sw||w>=aw-1)&&(!n.sh||h>=ah-1)}}
-function dim(n){let fs=n.fs||14,r=sz(n,fs);if(n.sw||n.sh){while(!r.ok&&fs>9){fs--;r=sz(n,fs)}}n.w=r.w;n.h=r.h;n.L=r.L;n.lh=r.lh;n.fe=fs}
+return{w:Math.round(w),h:Math.round(h),L,IL,lh,ok:(!n.sw||w>=aw-1)&&(!n.sh||h>=ah-1)}}
+function dim(n){let fs=n.fs||14,r=sz(n,fs);if(n.sw||n.sh){while(!r.ok&&fs>9){fs--;r=sz(n,fs)}}n.w=r.w;n.h=r.h;n.L=r.L;n.IL=r.IL;n.lh=r.lh;n.fe=fs}
 const dimAll=()=>S.nodes.forEach(dim);
-function addNode(type,x,y,text,color){const n={id:nid('n'),type,text:text??T[type][0],x:G(x),y:G(y)};if(color)n.color=color;dim(n);S.nodes.push(n);if(!REDUCE){NANIM.set(n.id,performance.now());animKick()}return n}
+function addNode(type,x,y,text,color){const n={id:nid('n'),type,text:text??T[type][0],x:G(x),y:G(y)};if(color)n.color=color;if(type=='check')n.ck=[{t:'Пункт 1',d:false},{t:'Пункт 2',d:false},{t:'Пункт 3',d:false}];dim(n);S.nodes.push(n);if(!REDUCE){NANIM.set(n.id,performance.now());animKick()}return n}
 function addEdge(a,b,label){if(!a||!b||a==b||S.edges.some(e=>e.from==a&&e.to==b))return null;const e={id:nid('e'),from:a,to:b};if(label)e.label=label;S.edges.push(e);if(!REDUCE){ANIM.set(e.id,performance.now());animKick()}return e}
-const ser=c=>({format:'flowforge',version:'2.6',...(c?{camera:{x:Math.round(S.cam.x),y:Math.round(S.cam.y),zoom:+S.cam.k.toFixed(3),...(S.cam.r?{rot:+S.cam.r.toFixed(4)}:{})}}:{}),nodes:S.nodes.map(n=>({id:n.id,type:n.type,text:n.text,x:n.x,y:n.y,...pick(n,['color','fs','sw','sh','lock','bd'])})),edges:S.edges.map(e=>({id:e.id,from:e.from,to:e.to,...pick(e,['label','route','dash','arrow','color','width','pts'])})),groups:S.groups.map(({id,title,color,nodes})=>({id,title,color,nodes}))});
+const ser=c=>({format:'flowforge',version:'2.7',...(c?{camera:{x:Math.round(S.cam.x),y:Math.round(S.cam.y),zoom:+S.cam.k.toFixed(3),...(S.cam.r?{rot:+S.cam.r.toFixed(4)}:{})}}:{}),nodes:S.nodes.map(n=>({id:n.id,type:n.type,text:n.text,x:n.x,y:n.y,...pick(n,['color','fs','sw','sh','lock','bd','ck','done'])})),edges:S.edges.map(e=>({id:e.id,from:e.from,to:e.to,...pick(e,['label','route','dash','arrow','color','width','pts'])})),groups:S.groups.map(({id,title,color,nodes})=>({id,title,color,nodes}))});
 let PJ=LS('ffProj',{});const pname=()=>(PJ[cfg.pid]&&PJ[cfg.pid].n)||'Без названия',slug=s=>String(s).trim().replace(/[^\p{L}\p{N}]+/gu,'-').replace(/^-|-$/g,'')||'flowforge';
 let svT=0;const save=()=>{clearTimeout(svT);svT=setTimeout(saveNow,500)};addEventListener('pagehide',()=>saveNow());document.addEventListener('visibilitychange',()=>{if(document.hidden)saveNow()});
-function saveNow(){try{if(!cfg.pid){cfg.pid='p'+Date.now().toString(36);cfgSave()}const o=PJ[cfg.pid];PJ[cfg.pid]={n:o?o.n:'Схема '+(Object.keys(PJ).length+1),t:Date.now(),d:ser(true)};localStorage.ffProj=JSON.stringify(PJ)}catch{}}
+function saveNow(){try{if(!cfg.pid){cfg.pid='p'+Date.now().toString(36);cfgSave()}const o=PJ[cfg.pid];PJ[cfg.pid]={n:o?o.n:'Схема '+(Object.keys(PJ).length+1),t:Date.now(),d:ser(true)};localStorage.ffProj=JSON.stringify(PJ)}catch(err){if(!SVW){SVW=true;toast('⚠️ Не удалось сохранить в браузере: память заполнена. Сохраните схему в JSON или сделайте резервную копию')}}}
 const cfgSave=()=>{try{localStorage.ffCfg=JSON.stringify(cfg)}catch{}};
-function commit(){const s=JSON.stringify(ser());if(hist[hi]===s)return;hist=hist.slice(0,hi+1);hist.push(s);if(hist.length>100)hist.shift();hi=hist.length-1;save();draw();insp()}
+function commit(){const s=JSON.stringify(ser());if(hist[hi]===s)return;hist=hist.slice(0,hi+1);hist.push(s);{let tot=0;hist.forEach(x=>tot+=x.length);while(hist.length>2&&(hist.length>200||tot>40e6))tot-=hist.shift().length}hi=hist.length-1;save();draw();insp()}
 function restore(s){const d=JSON.parse(s);S.nodes=d.nodes;S.edges=d.edges;S.groups=d.groups||[];dimAll();sel=new Set([...sel].filter(i=>N(i)));if(selE&&!S.edges.some(e=>e.id==selE))selE=null;if(selG&&!S.groups.some(g=>g.id==selG))selG=null;save();draw();insp()}
 const undo=()=>{if(hi>0){hi--;restore(hist[hi])}},redo=()=>{if(hi<hist.length-1){hi++;restore(hist[hi])}};
 function norm(d){if(!d||!Array.isArray(d.nodes))throw Error('нет массива "nodes"');const m=new Map(),seen=new Set();
 const nodes=d.nodes.map((r,i)=>{r=r||{};let id=r.id!=null?String(r.id):'n'+(i+1);const o=id;while(seen.has(id))id+='_';seen.add(id);if(!m.has(o))m.set(o,id);
-const ty0=TA[r.type]||r.type,type=T[ty0]?ty0:'process',xy=r.x!=null&&r.y!=null&&isFinite(+r.x)&&isFinite(+r.y),n={id,type,text:String(r.text??T[type][0]),x:xy?+r.x:NaN,y:xy?+r.y:NaN};const hc=hex6(r.color);if(hc)n.color=hc;if(+r.fs>=10&&+r.fs<=48&&+r.fs!=14)n.fs=+r.fs;if(+r.sw>=40)n.sw=+r.sw;if(+r.sh>=30)n.sh=+r.sh;if(r.lock===true)n.lock=true;if(['dashed','dotted','none','thick','thin'].includes(r.bd))n.bd=r.bd;return n});
+const ty0=TA[r.type]||r.type,type=T[ty0]?ty0:'process',xy=r.x!=null&&r.y!=null&&isFinite(+r.x)&&isFinite(+r.y),n={id,type,text:String(r.text??T[type][0]),x:xy?+r.x:NaN,y:xy?+r.y:NaN};const hc=hex6(r.color);if(hc)n.color=hc;if(+r.fs>=10&&+r.fs<=48&&+r.fs!=14)n.fs=+r.fs;if(+r.sw>=40)n.sw=+r.sw;if(+r.sh>=30)n.sh=+r.sh;if(r.lock===true)n.lock=true;if(['dashed','dotted','none','thick','thin'].includes(r.bd))n.bd=r.bd;if(Array.isArray(r.ck)){const ck=r.ck.slice(0,300).map(x=>typeof x=='string'?{t:x,d:false}:{t:String(x&&x.t!=null?x.t:x&&x.text!=null?x.text:''),d:!!(x&&(x.d||x.done))}).filter(x=>x.t.trim());if(ck.length)n.ck=ck}if(r.done===true||r.done===false)n.done=r.done;return n});
 const RM={curve:'curve',smooth:'curve',bezier:'curve',ortho:'ortho',orthogonal:'ortho',angle:'ortho',angular:'ortho',line:'line',straight:'line'},DM={dashed:'dashed',dash:'dashed',dotted:'dotted',dot:'dotted',dashdot:'dashdot'},pairs=new Set(),edges=[];
-(Array.isArray(d.edges)?d.edges:[]).forEach(r=>{const a=m.get(String(r?.from)),b=m.get(String(r?.to));if(a&&b&&a!=b&&!pairs.has(a+'>'+b)){pairs.add(a+'>'+b);const e={id:'e'+(edges.length+1),from:a,to:b};if(r.label)e.label=String(r.label);if(RM[r.route])e.route=RM[r.route];if(DM[r.dash])e.dash=DM[r.dash];if(r.arrow=='both'||r.arrow=='none')e.arrow=r.arrow;const c=hex6(r.color);if(c)e.color=c;if(+r.width>=1&&+r.width<=6&&+r.width!=2)e.width=+r.width;if(Array.isArray(r.pts)){const Q=r.pts.filter(v=>Array.isArray(v)&&isFinite(+v[0])&&isFinite(+v[1])).slice(0,12).map(v=>[+v[0],+v[1]]);if(Q.length)e.pts=Q}edges.push(e)}});
+(Array.isArray(d.edges)?d.edges:[]).forEach(r=>{const a=m.get(String(r?.from)),b=m.get(String(r?.to));if(a&&b&&a!=b&&!pairs.has(a+'>'+b)){pairs.add(a+'>'+b);const e={id:'e'+(edges.length+1),from:a,to:b};if(r.label)e.label=String(r.label);if(RM[r.route])e.route=RM[r.route];if(DM[r.dash])e.dash=DM[r.dash];if(r.arrow=='both'||r.arrow=='none')e.arrow=r.arrow;const c=hex6(r.color);if(c)e.color=c;if(+r.width>=1&&+r.width<=6&&+r.width!=2)e.width=+r.width;if(Array.isArray(r.pts)){const Q=r.pts.filter(v=>Array.isArray(v)&&isFinite(+v[0])&&isFinite(+v[1])).slice(0,200).map(v=>[+v[0],+v[1]]);if(Q.length)e.pts=Q}edges.push(e)}});
 const used=new Set(),groups=[];(Array.isArray(d.groups)?d.groups:[]).forEach(r=>{const ids=(Array.isArray(r?.nodes)?r.nodes:[]).map(x=>m.get(String(x))).filter(x=>x&&!used.has(x));if(!ids.length)return;ids.forEach(x=>used.add(x));groups.push({id:'g'+(groups.length+1),title:String(r.title??'Группа'),color:hex6(r.color)||'#89b4fa',nodes:ids})});
 return{nodes,edges,groups,auto:nodes.some(n=>isNaN(n.x))}}
 function setDoc(r){const{nodes,edges,groups,auto}=norm(r),c=r.camera;S.nodes=nodes;S.edges=edges;S.groups=groups;dimAll();sel=new Set();selE=null;selG=null;linkFrom=null;
@@ -61,14 +61,15 @@ const simp=pts=>{const o=[pts[0]];for(let i=1;i<pts.length-1;i++){const a=o[o.le
 function hPush(h,f,v){h.push([f,v]);let i=h.length-1;while(i>0){const p=(i-1)>>1;if(h[p][0]<=h[i][0])break;[h[p],h[i]]=[h[i],h[p]];i=p}}
 function hPop(h){const t=h[0],l=h.pop();if(h.length){h[0]=l;let i=0;for(;;){const a=2*i+1,b=a+1;let m=i;if(a<h.length&&h[a][0]<h[m][0])m=a;if(b<h.length&&h[b][0]<h[m][0])m=b;if(m==i)break;[h[m],h[i]]=[h[i],h[m]];i=m}}return t}
 /* Угловая трасса: A* по сетке из линий-границ блоков; обходит любые блоки, штраф за повороты */
-function route(a,b,s1,s2,p,q,av){
+function route(a,b,s1,s2,p,q,av,mg=260){
  const ST=24,MG=16,p1=[p[0]+NV[s1][0]*ST,p[1]+NV[s1][1]*ST],q1=[q[0]+NV[s2][0]*ST,q[1]+NV[s2][1]*ST];
- const x0=Math.min(p1[0],q1[0])-260,x1=Math.max(p1[0],q1[0])+260,y0=Math.min(p1[1],q1[1])-260,y1=Math.max(p1[1],q1[1])+260;
+ const x0=Math.min(p1[0],q1[0])-mg,x1=Math.max(p1[0],q1[0])+mg,y0=Math.min(p1[1],q1[1])-mg,y1=Math.max(p1[1],q1[1])+mg;
  const ob=S.nodes.filter(n=>n.x+n.w+MG>x0&&n.x-MG<x1&&n.y+n.h+MG>y0&&n.y-MG<y1).map(n=>[n.x-MG,n.y-MG,n.x+n.w+MG,n.y+n.h+MG]);
- const key=s1+s2+'|'+p1+'|'+q1+'|'+ob.join(';');let r=av?null:RC.get(key);if(r)return r;const avs=av?av.filter(s=>s[2]>=x0&&s[0]<=x1&&s[3]>=y0&&s[1]<=y1):[];
+ const key=s1+s2+'|'+mg+'|'+p1+'|'+q1+'|'+ob.join(';');let r=av?null:RC.get(key);if(r)return r;const avs=av?av.filter(s=>s[2]>=x0&&s[0]<=x1&&s[3]>=y0&&s[1]<=y1):[];
  const uq=(v,lo,hi)=>[...new Set(v.filter(x=>x>=lo&&x<=hi))].sort((m,n)=>m-n);
  const xs=uq([p1[0],q1[0],(p1[0]+q1[0])/2,x0,x1,...ob.flatMap(o=>[o[0],o[2]]),...avs.flatMap(s=>[s[0],s[2]])],x0,x1),ys=uq([p1[1],q1[1],(p1[1]+q1[1])/2,y0,y1,...ob.flatMap(o=>[o[1],o[3]]),...avs.flatMap(s=>[s[1],s[3]])],y0,y1);
  const nx=xs.length,ny=ys.length,ix=new Map(xs.map((v,i)=>[v,i])),iy=new Map(ys.map((v,i)=>[v,i])),si=ix.get(p1[0]),sj=iy.get(p1[1]),ti=ix.get(q1[0]),tj=iy.get(q1[1]);
+ if(nx*ny>140000)return simp([p,p1,(s1=='r'||s1=='l')?[q1[0],p1[1]]:[p1[0],q1[1]],q1,q]);
  const hO=new Set(),vO=new Set();avs.forEach(s=>{if(s[1]==s[3]){const j=iy.get(s[1]),lo=ix.get(s[0]),hi=ix.get(s[2]);if(j===undefined||lo===undefined||hi===undefined)return;for(let i=lo;i<hi;i++)hO.add(i*ny+j)}else{const i=ix.get(s[0]),lo=iy.get(s[1]),hi=iy.get(s[3]);if(i===undefined||lo===undefined||hi===undefined)return;for(let j=lo;j<hi;j++)vO.add(i*ny+j)}});
  const pen=(i,j,ni,nj,nd)=>{let c=0;if(nd<2){if(hO.has(Math.min(i,ni)*ny+j))c+=400;if(vO.has(ni*ny+nj-1)&&vO.has(ni*ny+nj))c+=800}else{if(vO.has(i*ny+Math.min(j,nj)))c+=400;if(hO.has((ni-1)*ny+nj)&&hO.has(ni*ny+nj))c+=800}return c};
  const inside=(x,y)=>{for(const o of ob)if(x>o[0]&&x<o[2]&&y>o[1]&&y<o[3])return true;return false},bc=new Int8Array(nx*ny).fill(-1);
@@ -76,11 +77,12 @@ function route(a,b,s1,s2,p,q,av){
  const d0=DIRS.findIndex(d=>d[0]==NV[s1][0]&&d[1]==NV[s1][1]),gd=DIRS.findIndex(d=>d[0]==-NV[s2][0]&&d[1]==-NV[s2][1]);
  const dist=new Float64Array(nx*ny*4).fill(Infinity),par=new Int32Array(nx*ny*4).fill(-1),H=[],hh=(i,j)=>Math.abs(xs[i]-xs[ti])+Math.abs(ys[j]-ys[tj]);
  const st0=(si*ny+sj)*4+d0;dist[st0]=0;hPush(H,hh(si,sj),st0);let end=-1,pops=0;
- while(H.length&&pops++<40000){const s=hPop(H)[1],d=s&3,c=s>>2,i=(c/ny)|0,j=c%ny,g=dist[s];
+ while(H.length&&pops++<150000){const s=hPop(H)[1],d=s&3,c=s>>2,i=(c/ny)|0,j=c%ny,g=dist[s];
   if(i==ti&&j==tj){end=s;break}
   for(let nd=0;nd<4;nd++){if((nd^1)==d)continue;const ni=i+DIRS[nd][0],nj=j+DIRS[nd][1];if(ni<0||nj<0||ni>=nx||nj>=ny)continue;const goal=ni==ti&&nj==tj;if(!goal&&blocked(ni,nj))continue;
    if(inside((xs[i]+xs[ni])/2,(ys[j]+ys[nj])/2))continue;
    let cost=g+Math.abs(xs[ni]-xs[i])+Math.abs(ys[nj]-ys[j])+(nd!=d?40:0)+(goal&&nd!=gd?40:0);if(avs.length)cost+=pen(i,j,ni,nj,nd);const ns=(ni*ny+nj)*4+nd;if(cost<dist[ns]){dist[ns]=cost;par[ns]=s;hPush(H,cost+hh(ni,nj),ns)}}}
+ if(end<0&&mg<900)return route(a,b,s1,s2,p,q,av,900);
  let pts;
  if(end>=0){const path=[];for(let s=end;s>=0;s=par[s]){const c=s>>2;path.push([xs[(c/ny)|0],ys[c%ny]])}path.reverse();pts=[p,...path,q]}
  else pts=[p,p1,(s1=='r'||s1=='l')?[q1[0],p1[1]]:[p1[0],q1[1]],q1,q];
@@ -120,10 +122,10 @@ function tipAt(d,f){const p=document.createElementNS(NS,'path');p.setAttribute('
 const clampv=v=>Math.max(-9,Math.min(9,v));
 function shT(l){const k=S.cam.k,a=-cr(),ca=Math.cos(a),sa=Math.sin(a),x=2+LIFT*5+(l>1?4:0)-clampv(VEL.x*.3),y=4+LIFT*9+(l>1?7:0)-clampv(VEL.y*.3);return`translate(${((ca*x-sa*y)/k).toFixed(2)} ${((sa*x+ca*y)/k).toFixed(2)})`}
 function dk(c,k=.38){c=hex6(c)||'#888888';return'#'+[1,3,5].map(i=>Math.round(parseInt(c.substr(i,2),16)*(1-k)).toString(16).padStart(2,'0')).join('')}
-function miniIcon(k,pw=38){const n={type:k,x:3,y:4,w:40,h:24};if(k=='decision'){n.y=2;n.h=28}if(k=='conn'){n.x=11;n.y=3;n.w=24;n.h=24}const c=T[k][1];return`<svg viewBox="0 0 46 32" width="${pw}" height="${Math.round(pw*32/46)}" aria-hidden="true">${shp(n,c,dk(c),1.4)}</svg>`}
-function body(ex){const P=PAL[cfg.bg],lb=P.bg=='transparent'?'#ffffff':P.bg,k0=S.cam.k,now=performance.now(),vis=(x,y,w,h)=>ex||!RB||(x<RB.x+RB.w&&x+w>RB.x&&y<RB.y+RB.h&&y+h>RB.y),flowOK=cfg.flow&&!ex&&S.edges.length<=200,fph=((now/1000)%.9).toFixed(3);MC=new Set([P.edge]);let o='',hd='';NSIG=nsig();routeAll();
+function miniIcon(k,pw=38){const n={type:k,x:3,y:4,w:40,h:24};if(k=='decision'){n.y=2;n.h=28}if(k=='conn'){n.x=11;n.y=3;n.w=24;n.h=24}const c=T[k][1];return`<svg viewBox="0 0 46 32" width="${pw}" height="${Math.round(pw*32/46)}" aria-hidden="true">${shp(n,c,dk(c),1.4)}${k=='check'?'<path d="M14 14l4 4 8-9" stroke="#2d6a4f" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>':''}</svg>`}
+function body(ex){const P=PAL[cfg.bg],lb=P.bg=='transparent'?'#ffffff':P.bg,k0=S.cam.k,now=performance.now(),vis=(x,y,w,h)=>ex||!RB||(x<RB.x+RB.w&&x+w>RB.x&&y<RB.y+RB.h&&y+h>RB.y),flowOK=cfg.flow&&!ex,fph=((now/1000)%.9).toFixed(3);MC=new Set([P.edge]);let o='',hd='',flc=0;NSIG=nsig();routeAll();
 const vn=S.nodes.filter(n=>vis(n.x,n.y,n.w,n.h)),rich=cfg.depth&&(ex||(k0>=.4&&vn.length<=100)),dgm=!ex&&g&&g.t=='drag'&&g.mv?g.o:null;
-let hn=null,he=null;if(!ex&&cfg.trace){if(sel.size==1){const id=[...sel][0];hn=new Set([id]);he=new Set();S.edges.forEach(e=>{if(e.from==id||e.to==id){he.add(e.id);hn.add(e.from);hn.add(e.to)}})}else if(selE){const x=ed();if(x){hn=new Set([x.from,x.to]);he=new Set([x.id])}}}
+const AV=!ex&&(tool=='run'||!$('#progp').hidden)?availSet():null;let hn=null,he=null;if(!ex&&cfg.trace){if(sel.size==1){const id=[...sel][0];hn=new Set([id]);he=new Set();S.edges.forEach(e=>{if(e.from==id||e.to==id){he.add(e.id);hn.add(e.from);hn.add(e.to)}})}else if(selE){const x=ed();if(x){hn=new Set([x.from,x.to]);he=new Set([x.id])}}}
 S.groups.forEach(gp=>{const r=gbox(gp);if(!r||!vis(r.x,r.y,r.w,r.h))return;const on=!ex&&selG==gp.id,c=gp.color||'#89b4fa';
 o+=`<g><rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="14" fill="${c}" fill-opacity=".07" stroke="${on?'#f9e2af':c}" stroke-width="${on?2.6:1.8}" ${on?'':'stroke-dasharray="8 5"'} pointer-events="none"/><rect data-g="${gp.id}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.hh}" rx="14" fill="${c}" fill-opacity=".22"/><text x="${r.x+14}" y="${r.y+19}" font-size="13" font-weight="700" fill="${P.txt}" pointer-events="none">${esc(gp.title)}</text></g>`});
 S.edges.forEach(e=>{const a=NM.get(e.from),b=NM.get(e.to);if(!a||!b)return;const on=!ex&&selE==e.id;
@@ -133,18 +135,18 @@ let pr=1;if(!ex){const t0=ANIM.get(e.id);if(t0!==undefined)pr=Math.max(0,Math.mi
 const ea=1-Math.pow(1-pr,3),an=pr<1;let ln;
 if(an&&!dm){ln=`<path d="${q.d}" pathLength="1" fill="none" stroke="${sc}" stroke-width="${sw}" stroke-linejoin="round" stroke-dasharray="1 1" stroke-dashoffset="${(1-ea).toFixed(4)}"/>`;if(ar!='none'&&ea>.03){const t=tipAt(q.d,ea);ln+=`<path d="M-11 -6L1 0L-11 6z" transform="translate(${t.x} ${t.y}) rotate(${t.a}) scale(${w/2})" fill="${sc}"/>`}}
 else ln=`<path d="${q.d}" fill="none" stroke="${sc}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" ${dm?`stroke-dasharray="${dm}"`:''} ${ar!='none'?`marker-end="url(#${mk})"`:''} ${ar=='both'?`marker-start="url(#${mk})"`:''} ${an?`opacity="${ea.toFixed(3)}"`:''}/>`;
-const fl=flowOK&&!an&&!dm?`<path class="fl" d="${q.d}" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="${w}" stroke-dasharray="3 13" stroke-linecap="round" style="animation-delay:-${fph}s"/>`:'';
+const fl=flowOK&&!an&&!dm&&flc++<250?`<path class="fl" d="${q.d}" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="${w}" stroke-dasharray="3 13" stroke-linecap="round" style="animation-delay:-${fph}s"/>`:'';
 let lab='';if(e.label){const lw=Math.max(26,e.label.length*8+14);lab=`<g${an?` opacity="${(ea*ea).toFixed(3)}"`:''}><rect x="${q.m[0]-lw/2}" y="${q.m[1]-23}" width="${lw}" height="20" rx="8" fill="${lb}" fill-opacity=".92" stroke="${sc}" stroke-opacity=".4"/><text x="${q.m[0]}" y="${q.m[1]-9}" text-anchor="middle" font-size="13" font-weight="700" fill="${P.txt}">${esc(e.label)}</text></g>`}
 o+=`<g data-e="${e.id}"${dim2?' opacity=".25"':''}><path d="${q.d}" fill="none" stroke="transparent" stroke-width="24"/>${ln}${fl}${lab}</g>`;
 if(on){const hk=1/Math.max(.6,Math.min(k0,1.5));(e.pts||[]).forEach((v,i)=>hd+=`<circle data-wp="${e.id}:${i}" cx="${v[0]}" cy="${v[1]}" r="${8*hk}" fill="#f9e2af" stroke="#1e1e2e" stroke-width="${2*hk}" style="cursor:move"/>`);(q.hm||[q.m]).forEach((v,i)=>hd+=`<circle data-wm="${e.id}:${i}" cx="${v[0]}" cy="${v[1]}" r="${6*hk}" fill="#1e1e2e" stroke="#f9e2af" stroke-width="${2*hk}" opacity=".9" style="cursor:copy"/>`)}});
 if(cfg.nocross&&!ex&&NCON){const rr=6/Math.max(.6,Math.min(k0,1.5));NCX.forEach(v=>o+=`<circle cx="${v[0]}" cy="${v[1]}" r="${rr}" fill="none" stroke="#f38ba8" stroke-width="2" pointer-events="none"/>`)}
 if(rich){const s1=vn.filter(n=>!dgm||!dgm.has(n.id)).map(n=>shp(n,'#000','#000',9)).join(''),s2=dgm?vn.filter(n=>dgm.has(n.id)).map(n=>shp(n,'#000','#000',9)).join(''):'';
 o+=`<g id="shd" fill-opacity=".26" stroke-opacity=".08" stroke-linejoin="round" pointer-events="none" transform="${ex?'translate(3 5)':shT(1)}">${s1}</g>`+(s2?`<g id="shd2" fill-opacity=".2" stroke-opacity=".07" stroke-linejoin="round" pointer-events="none" transform="${shT(2)}">${s2}</g>`:'')}
-S.nodes.forEach(n=>{if(!vis(n.x,n.y,n.w,n.h)&&!sel.has(n.id))return;const on=!ex&&(sel.has(n.id)||linkFrom==n.id),dr=dgm&&dgm.has(n.id),f=n.color||T[n.type][1],cx=n.x+n.w/2,cy=n.y+n.h/2,lh=n.lh||19,fs=n.fe||n.fs||14,y0=cy-(n.L.length-1)*lh/2+fs*.36,bd=n.bd,sc=on?'#f9e2af':bd=='none'?'none':dk(f),swd=on?3:bd=='thick'?3.2:bd=='thin'?.9:1.6,da=bd=='dashed'?'7 4':bd=='dotted'?'1.5 4':'';
+S.nodes.forEach(n=>{if(!vis(n.x,n.y,n.w,n.h)&&!sel.has(n.id))return;const on=!ex&&(sel.has(n.id)||linkFrom==n.id),dr=dgm&&dgm.has(n.id),f=n.color||T[n.type][1],cx=n.x+n.w/2,cy=n.y+n.h/2,lh=n.lh||19,fs=n.fe||n.fs||14,ckn=n.ck&&n.ck.length,y0=ckn?n.y+10+fs:cy-(n.L.length-1)*lh/2+fs*.36,tk=trk(n),cm=tk&&comp(n),bd=n.bd,sc=on?'#f9e2af':cm?'#a6e3a1':bd=='none'?'none':dk(f),swd=on?3:cm?2.6:bd=='thick'?3.2:bd=='thin'?.9:1.6,da=bd=='dashed'?'7 4':bd=='dotted'?'1.5 4':'';
 let tr='',dimN=hn&&!hn.has(n.id);const t0=ex?undefined:NANIM.get(n.id);if(t0!==undefined){const p=Math.max(0,Math.min(1,(now-t0)/220)),e=1-Math.pow(1-p,3),s=.82+.18*e;tr=` transform="translate(${cx} ${cy}) scale(${s.toFixed(3)}) translate(${-cx} ${-cy})" opacity="${e.toFixed(2)}"`}else if(dr)tr=` transform="translate(${(-2/k0).toFixed(2)} ${(-3/k0).toFixed(2)})"`;
-o+=`<g data-n="${n.id}"${tr}${dimN&&!tr?' opacity=".5"':''}>${on?`<g opacity=".3" stroke-linejoin="round">${shp(n,'none','#f9e2af',9)}</g>`:''}${shp(n,f,sc,swd,da)}${rich?shp(n,'url(#gl)','none',0):''}<text font-size="${fs}" font-weight="600" text-anchor="middle" fill="${ink(f)}">${n.L.map((s,i)=>`<tspan x="${cx}" y="${y0+i*lh}">${esc(s)}</tspan>`).join('')}</text>${n.lock&&!ex?`<text x="${n.x+n.w-16}" y="${n.y+15}" font-size="11">🔒</text>`:''}</g>`});
-if(!ex&&sel.size==1&&tool!='pan'){const n=N([...sel][0]);if(n)['r','l','t','b'].forEach(s=>{const[px,py]=pt(n,s);o+=`<circle data-p="${n.id}" data-s="${s}" cx="${px}" cy="${py}" r="${9/Math.max(.6,Math.min(k0,1.5))}" fill="#f9e2af" stroke="#1e1e2e" stroke-width="2"/>`})}
-if(!ex&&sel.size==1&&tool!='pan'){const n=N([...sel][0]);if(n&&!n.lock){const k=1/Math.max(.6,Math.min(k0,1.5)),z=12*k;[['nw',n.x,n.y,'nwse'],['ne',n.x+n.w,n.y,'nesw'],['sw',n.x,n.y+n.h,'nesw'],['se',n.x+n.w,n.y+n.h,'nwse']].forEach(([c,x,y,cu])=>o+=`<rect data-rs="${n.id}:${c}" x="${x-z/2}" y="${y-z/2}" width="${z}" height="${z}" rx="${3*k}" fill="#89b4fa" stroke="#1e1e2e" stroke-width="${1.6*k}" style="cursor:${cu}-resize"/>`)}}
+o+=`<g data-n="${n.id}"${tr}${dimN&&!tr?' opacity=".5"':''}>${AV&&AV.has(n.id)?`<g opacity=".95">${shp(n,'none','#f9e2af',2.6,'7 4')}</g>`:''}${on?`<g opacity=".3" stroke-linejoin="round">${shp(n,'none','#f9e2af',9)}</g>`:''}${shp(n,f,sc,swd,da)}${rich?shp(n,'url(#gl)','none',0):''}<text font-size="${fs}" font-weight="600" text-anchor="middle" fill="${ink(f)}">${n.L.map((s,i)=>`<tspan x="${cx}" y="${y0+i*lh}">${esc(s)}</tspan>`).join('')}</text>${ckn?ckSvg(n,f,fs,lh):''}${tk?badgeSvg(n,cm):''}${n.lock&&!ex?`<text x="${n.x+n.w-16}" y="${n.y+15}" font-size="11">🔒</text>`:''}</g>`});
+if(!ex&&sel.size==1&&tool!='pan'&&tool!='run'){const n=N([...sel][0]);if(n)['r','l','t','b'].forEach(s=>{const[px,py]=pt(n,s);o+=`<circle data-p="${n.id}" data-s="${s}" cx="${px}" cy="${py}" r="${9/Math.max(.6,Math.min(k0,1.5))}" fill="#f9e2af" stroke="#1e1e2e" stroke-width="2"/>`})}
+if(!ex&&sel.size==1&&tool!='pan'&&tool!='run'){const n=N([...sel][0]);if(n&&!n.lock){const k=1/Math.max(.6,Math.min(k0,1.5)),z=12*k;[['nw',n.x,n.y,'nwse'],['ne',n.x+n.w,n.y,'nesw'],['sw',n.x,n.y+n.h,'nesw'],['se',n.x+n.w,n.y+n.h,'nwse']].forEach(([c,x,y,cu])=>o+=`<rect data-rs="${n.id}:${c}" x="${x-z/2}" y="${y-z/2}" width="${z}" height="${z}" rx="${3*k}" fill="#89b4fa" stroke="#1e1e2e" stroke-width="${1.6*k}" style="cursor:${cu}-resize"/>`)}}
 return o+hd}
 const draw=()=>{full=true;raf||(raf=requestAnimationFrame(render));tick()};
 const drawCam=()=>{lastCamT=Date.now();raf||(raf=requestAnimationFrame(render));tick()};
@@ -153,7 +155,7 @@ function render(){raf=0;const c=S.cam,vb=viewB(),vx=vb.x,vy=vb.y,vw=vb.w,vh=vb.h
 VEL.x=VEL.x*.55+(c.x-PC.x)*.45;VEL.y=VEL.y*.55+(c.y-PC.y)*.45;PC={x:c.x,y:c.y};
 const inside=RB&&!full&&vx>=RB.x&&vy>=RB.y&&vx+vw<=RB.x+RB.w&&vy+vh<=RB.y+RB.h&&Math.abs(c.k/rk0-1)<.35&&(c.k<.5)==(rk0<.5);
 if(inside)fastCam(c);else fullRender(c,vx,vy,vw,vh);
-$('#info').innerHTML=`<span class="ia">${S.nodes.length} бл · ${S.edges.length} св · </span>${Math.round(c.k*100)}%${cfg.nocross&&NCON?` · <span class="ix">✂ ${NCX.length}</span>`:''}`;{const cp=$('#cmpi');if(cp){cp.style.transform=`rotate(${(cr()*180/Math.PI).toFixed(1)}deg)`;$('#cmp').classList.toggle('dim',Math.abs(cr())<.01)}}$('[data-a=undo]').disabled=hi<1;$('[data-a=redo]').disabled=hi>=hist.length-1;inside?miniView():mini()}
+$('#info').innerHTML=`<span class="ia">${S.nodes.length} бл · ${S.edges.length} св · </span>${Math.round(c.k*100)}%${cfg.nocross?` · <span class="ix" id="ncx" data-a="ncdeep" title="Нажмите, чтобы улучшить расположение линий">✂ ${NCON?NCX.length:(NCJ?NCPROG+'%…':'…')}</span>`:''}`;{const cp=$('#cmpi');if(cp){cp.style.transform=`rotate(${(cr()*180/Math.PI).toFixed(1)}deg)`;$('#cmp').classList.toggle('dim',Math.abs(cr())<.01)}}{const pb=$('#progBtn');if(pb){const st=progStats();pb.textContent=st.tn?`☑ ${Math.round(st.dn*100/st.tn)}%`:'☑'}if(!inside&&!$('#progp').hidden)progShow()}$('[data-a=undo]').disabled=hi<1;$('[data-a=redo]').disabled=hi>=hist.length-1;inside?miniView():mini()}
 function fullRender(c,vx,vy,vw,vh){full=false;rk0=c.k;const mx=vw*.6,my=vh*.6;RB={x:vx-mx,y:vy-my,w:vw+2*mx,h:vh+2*my};NM=new Map(S.nodes.map(n=>[n.id,n]));const P=PAL[cfg.bg],b=body(false);
 $('#stage').style.background=P.bg=='transparent'?'':P.bg;$('#stage').classList.toggle('chk',P.bg=='transparent');
 bgStyle(c);
@@ -198,13 +200,13 @@ const unrot=()=>{const r=cr();if(Math.abs(r)<.001){toast('Лист уже ров
 function setSel(ids,e=null,gid=null){sel=new Set(ids);selE=e;selG=gid;insp();draw()}
 const ed=()=>S.edges.find(x=>x.id==selE),gr=()=>S.groups.find(x=>x.id==selG);
 function insp(){const one=sel.size==1?N([...sel][0]):null,e=selE&&ed(),g=selG&&gr(),p=$('#insp'),P=PAL[cfg.bg];
-p.hidden=!(sel.size||e||g);$('#ititle').textContent=one?NAMES[one.type]:sel.size>1?`Блоков: ${sel.size}`:e?'Связь':g?'Группа':'';$('#s-text').hidden=!one;$('#s-node').hidden=!sel.size;$('#s-multi').hidden=sel.size<2;$('#s-edge').hidden=!e;$('#s-grp').hidden=!g;
-if(one){$('#pf').value=String(one.fs||14);$('#pb').value=one.bd||'';$('#lockBtn').textContent=one.lock?'🔓':'🔒';$('#pt').value=one.text;$('#pty').value=one.type;$('#pc').value=hex6(one.color||T[one.type][1])}else if(sel.size)$('#pc').value='#89b4fa';
+p.hidden=!(sel.size||e||g);$('#ititle').textContent=one?NAMES[one.type]:sel.size>1?`Блоков: ${sel.size}`:e?'Связь':g?'Группа':'';$('#s-text').hidden=!one;$('#s-ck').hidden=!one;$('#s-node').hidden=!sel.size;$('#s-multi').hidden=sel.size<2;$('#s-edge').hidden=!e;$('#s-grp').hidden=!g;
+if(one){$('#pf').value=String(one.fs||14);$('#pb').value=one.bd||'';$('#pck').value=(one.ck||[]).map(x=>(x.d?'[x] ':'')+x.t).join('\n');$('#ptrk').checked=trk(one);$('#ptrk').disabled=!!(one.ck&&one.ck.length);$('#lockBtn').textContent=one.lock?'🔓':'🔒';$('#pt').value=one.text;$('#pty').value=one.type;$('#pc').value=hex6(one.color||T[one.type][1])}else if(sel.size)$('#pc').value='#89b4fa';
 if(e){$('#pl').value=e.label||'';$('#er').value=e.route||'';$('#ed').value=e.dash||'solid';$('#ea').value=e.arrow||'end';$('#ew').value=String(e.width||2);$('#ec').value=hex6(e.color||P.edge)||'#89b4fa'}
 if(g){$('#gt').value=g.title;$('#gc').value=hex6(g.color)||'#89b4fa'}}
 $('#pty').innerHTML=Object.keys(T).map(k=>`<option value="${k}">${NAMES[k]}`).join('');
 $('#pt').oninput=e=>{const n=N([...sel][0]);if(n){n.text=e.target.value;dim(n);draw()}};
-$('#pty').onchange=e=>{sel.forEach(i=>{const n=N(i);n.type=e.target.value;dim(n)});commit()};
+$('#pty').onchange=e=>{sel.forEach(i=>{const n=N(i);n.type=e.target.value;if(n.type=='check'&&!(n.ck&&n.ck.length))n.ck=[{t:'Пункт 1',d:false},{t:'Пункт 2',d:false}];dim(n)});commit()};
 $('#pc').oninput=e=>{sel.forEach(i=>N(i).color=e.target.value);draw()};
 $('#pl').oninput=e=>{const x=ed();if(x){x.label=e.target.value;draw()}};
 $('#gt').oninput=e=>{const g=gr();if(g){g.title=e.target.value;draw()}};
@@ -212,11 +214,11 @@ $('#gc').oninput=e=>{const g=gr();if(g){g.color=e.target.value;draw()}};
 $('#ec').oninput=e=>{const x=ed();if(x){x.color=e.target.value;draw()}};
 [['er','route',''],['ed','dash','solid'],['ea','arrow','end'],['ew','width','2']].forEach(([id,k,def])=>$('#'+id).onchange=e=>{const x=ed();if(!x)return;const v=e.target.value;if(v===''||v===def)delete x[k];else x[k]=k=='width'?+v:v;commit()});
 ['pt','pc','pl','gt','gc','ec'].forEach(i=>$('#'+i).onchange=commit);
-function setTool(t){tool=t;linkFrom=null;document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t==t));svg.style.cursor=t=='pan'?'grab':t=='link'?'crosshair':'default';draw()}
+function setTool(t){tool=t;linkFrom=null;document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t==t));svg.style.cursor=t=='pan'?'grab':t=='link'?'crosshair':t=='run'?'pointer':'default';draw()}
 const cleanG=()=>{S.groups.forEach(g=>g.nodes=g.nodes.filter(i=>N(i)));S.groups=S.groups.filter(g=>g.nodes.length)};
 function del(){if(selG){S.groups=S.groups.filter(x=>x.id!=selG);selG=null}else if(selE){S.edges=S.edges.filter(e=>e.id!=selE);selE=null}else if(sel.size){S.nodes=S.nodes.filter(n=>!sel.has(n.id));S.edges=S.edges.filter(e=>!sel.has(e.from)&&!sel.has(e.to));sel=new Set();cleanG()}else return;commit()}
 function copy(){clip={n:S.nodes.filter(n=>sel.has(n.id)).map(n=>({...n})),e:S.edges.filter(e=>sel.has(e.from)&&sel.has(e.to)).map(e=>({...e})),g:S.groups.filter(g=>g.nodes.every(i=>sel.has(i))).map(g=>({...g,nodes:[...g.nodes]})),c:0};if(clip.n.length)toast('Скопировано')}
-function paste(){if(!clip||!clip.n.length)return;clip.c++;const m=new Map(),o=clip.c*40;clip.n.forEach(n=>{const k=addNode(n.type,n.x+o,n.y+o,n.text,n.color);m.set(n.id,k.id)});clip.e.forEach(e=>{const k=addEdge(m.get(e.from),m.get(e.to),e.label);if(k)Object.assign(k,pick(e,['route','dash','arrow','color','width']))});clip.g.forEach(g=>S.groups.push({id:nid('g'),title:g.title,color:g.color,nodes:g.nodes.map(i=>m.get(i)).filter(Boolean)}));sel=new Set(m.values());selG=null;commit()}
+function paste(){if(!clip||!clip.n.length)return;clip.c++;const m=new Map(),o=clip.c*40;clip.n.forEach(n=>{const k=addNode(n.type,n.x+o,n.y+o,n.text,n.color);Object.assign(k,pick(n,['fs','sw','sh','bd','done']));if(n.ck)k.ck=n.ck.map(x=>({...x}));dim(k);m.set(n.id,k.id)});clip.e.forEach(e=>{const k=addEdge(m.get(e.from),m.get(e.to),e.label);if(k)Object.assign(k,pick(e,['route','dash','arrow','color','width']))});clip.g.forEach(g=>S.groups.push({id:nid('g'),title:g.title,color:g.color,nodes:g.nodes.map(i=>m.get(i)).filter(Boolean)}));sel=new Set(m.values());selG=null;commit()}
 function mkGroup(){const ids=[...sel];if(ids.length<2)return toast('Выделите 2+ блока: Shift + клик или рамка');S.groups.forEach(g=>g.nodes=g.nodes.filter(i=>!ids.includes(i)));cleanG();const g={id:nid('g'),title:'Группа',color:'#89b4fa',nodes:ids};S.groups.push(g);sel=new Set();selE=null;selG=g.id;commit();if(matchMedia('(pointer:fine)').matches){$('#gt').focus();$('#gt').select()}}
 function ungrp(){const g=gr();if(!g)return;sel=new Set(g.nodes);S.groups=S.groups.filter(x=>x.id!=g.id);selG=null;commit()}
 function addFromPalette(type){const r=svg.getBoundingClientRect(),c=S.cam,s=sel.size==1&&type!='note'?N([...sel][0]):null,o=(S.nodes.length%6)*20;let n;
@@ -232,6 +234,7 @@ if(P.size==2){const[a,b]=[...P.values()];g={t:'pinch',d:Math.hypot(a.x-b.x,a.y-b
 if(P.size>2)return;
 if(e.altKey&&e.pointerType=='mouse'){const r=svg.getBoundingClientRect();g={t:'rot',cx:r.left+r.width/2,cy:r.top+r.height/2,a0:Math.atan2(e.clientY-(r.top+r.height/2),e.clientX-(r.left+r.width/2)),r0:cr(),w:s2w(r.width/2,r.height/2),mx:r.width/2,my:r.height/2};return}
 const w=toW(e),wm=e.target.closest('[data-wm]'),wp=e.target.closest('[data-wp]'),rs=e.target.closest('[data-rs]'),pe=e.target.closest('[data-p]'),ne=e.target.closest('[data-n]'),ge=e.target.closest('[data-g]'),ee=e.target.closest('[data-e]'),pan=tool=='pan'||space||e.button==1;
+const ckEl=e.target.closest('[data-ck]');if(ckEl&&tool!='link'){g={t:'ck',k:ckEl.dataset.ck,x:e.clientX,y:e.clientY,mv:false};return}
 if(wm&&!pan){const[id,i]=wm.dataset.wm.split(':'),x=S.edges.find(q=>q.id==id);if(x){x.pts=x.pts||[];x.pts.splice(+i,0,[G(w.x),G(w.y)]);g={t:'wp',id,i:+i,w,mv:true};draw();return}}
 if(wp&&!pan){const[id,i]=wp.dataset.wp.split(':'),x=S.edges.find(q=>q.id==id);if(x&&x.pts){if(last.id=='w'+wp.dataset.wp&&Date.now()-last.t<350){x.pts.splice(+i,1);if(!x.pts.length)delete x.pts;last={};commit();return}last={id:'w'+wp.dataset.wp,t:Date.now()};g={t:'wp',id,i:+i,w,mv:false}}return}
 if(rs&&!pan){const[rid,cn]=rs.dataset.rs.split(':'),n=N(rid);if(last.id=='r'+rid+cn&&Date.now()-last.t<350){delete n.sw;delete n.sh;dim(n);last={};commit();return}last={id:'r'+rid+cn,t:Date.now()};g={t:'resize',id:n.id,c:cn||'se',w,ow:n.w,oh:n.h,ox:n.x,oy:n.y};return}
@@ -249,6 +252,7 @@ g={t:pan||e.pointerType=='touch'?'pan':'box',w,x:e.clientX,y:e.clientY,cx:S.cam.
 svg.addEventListener('pointermove',e=>{if(!P.has(e.pointerId))return;P.set(e.pointerId,{x:e.clientX,y:e.clientY});if(LP&&Math.hypot(e.clientX-LP.x,e.clientY-LP.y)>8)lpStop();if(!g)return;
 if(g.t=='pinch'){if(P.size<2)return;const[a,b]=[...P.values()],r=svg.getBoundingClientRect(),k=Math.max(.1,Math.min(4,g.k*Math.hypot(a.x-b.x,a.y-b.y)/g.d)),mx=(a.x+b.x)/2-r.left,my=(a.y+b.y)/2-r.top;let da=Math.atan2(b.y-a.y,b.x-a.x)-g.a0;da=Math.atan2(Math.sin(da),Math.cos(da));if(Math.abs(da)>.12)g.rot=true;S.cam.k=k;S.cam.r=g.rot?g.r0+da:g.r0;anchor(g.w.x,g.w.y,mx,my);return drawCam()}
 const w=toW(e);
+if(g.t=='ck'){if(Math.hypot(e.clientX-g.x,e.clientY-g.y)>7)g.mv=true;return}
 if(g.t=='pan'){const dx=e.clientX-g.x,dy=e.clientY-g.y;if(Math.hypot(dx,dy)>3)g.mv=true;S.cam.x=g.cx+dx;S.cam.y=g.cy+dy;return drawCam()}
 else if(g.t=='drag'){const dx=w.x-g.w.x,dy=w.y-g.w.y;if(Math.hypot(dx,dy)*S.cam.k>4)g.mv=true;ov='';if(g.mv){g.o.forEach(([ox,oy],id)=>{const n=N(id);n.x=G(ox+dx);n.y=G(oy+dy)});if(cfg.guides)guides();shiftWp()}}
 else if(g.t=='rot'){S.cam.r=g.r0+(Math.atan2(e.clientY-g.cy,e.clientX-g.cx)-g.a0);anchor(g.w[0],g.w[1],g.mx,g.my);return drawCam()}
@@ -260,7 +264,9 @@ draw()});
 const up=e=>{lpStop();P.delete(e.pointerId);if(!g)return;if(g.t=='pinch'){if(P.size<2){g=null;snapRot();save()}return}
 const w=toW(e),t=g.t;
 if(t=='rot'){g=null;snapRot();save();return}
-if(t=='drag'&&g.mv&&cfg.noover&&resolveOverlaps([...g.o.keys()]))toast('Блоки не накладываются: сдвинул в свободное место');
+if(t=='ck'){const kk=g.k,mv=g.mv;g=null;if(!mv)toggleCk(kk);draw();return}
+if(t=='drag'&&!g.mv&&tool=='run'){const n=N([...g.o.keys()][0]);if(n&&trk(n)&&!(n.ck&&n.ck.length)){n.done=!n.done;commit()}}
+if(t=='drag'&&g.mv&&cfg.noover){const r0=resolveOverlaps([...g.o.keys()]);if(r0=='moved')toast('Блок сдвинут в свободное место');else if(r0=='none')toast('Свободного места рядом нет: оставил как есть')}
 if((t=='drag'||t=='resize'||t=='wp')&&g.mv)commit();
 else if(t=='link'&&g.mv){const h=hit(w);if(h&&h.id!=g.from){if(addEdge(g.from,h.id))commit()}else if(!h){const n=addNode('process',w.x-60,w.y-28);addEdge(g.from,n.id);sel=new Set([n.id]);commit()}}
 else if(t=='box'&&g.e){const x1=Math.min(g.w.x,g.e.x),x2=Math.max(g.w.x,g.e.x),y1=Math.min(g.w.y,g.e.y),y2=Math.max(g.w.y,g.e.y),ids=S.nodes.filter(n=>n.x<x2&&n.x+n.w>x1&&n.y<y2&&n.y+n.h>y1).map(n=>n.id);setSel(g.add?[...sel,...ids]:ids)}
@@ -298,9 +304,9 @@ return{w,h,s:`<svg xmlns="${NS}" width="${w}" height="${h}" viewBox="${x} ${y} $
 function canvas(sc,white){return new Promise((res,rej)=>{NM=new Map(S.nodes.map(n=>[n.id,n]));const{s,w,h}=svgStr(),im=new Image(),k=Math.min(sc,8000/Math.max(w,h)),c=document.createElement('canvas');c.width=w*k;c.height=h*k;const x=c.getContext('2d');if(white){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}
 im.onload=()=>{x.drawImage(im,0,0,c.width,c.height);res({c,w,h})};im.onerror=()=>rej(Error('render'));im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s)})}
 function importText(t){try{const body=t.trim().replace(/^```(?:json|mermaid)?\s*/i,'').replace(/```\s*$/,'').trim(),mm=/^(flowchart|graph)\b/i.test(body),doc=mm?fromMermaid(body):JSON.parse(body);if(!mm&&doc&&doc.format=='flowforge-backup')return restoreBackup(doc);setDoc(doc);if(mm&&doc.dir=='LR')layout('LR');reveal();toast(`✅ ${mm?'Mermaid':'JSON'}: ${S.nodes.length} блоков, ${S.edges.length} связей`);return true}catch(e){toast('❌ Ошибка импорта: '+e.message);return false}}
-const TYPES_DOC='terminal (овал: начало/конец), process (действие), decision (ромб: условие, 2 выхода «Да»/«Нет» в label связи), io (ввод/вывод), data (данные/БД), sub (подпроцесс), note (заметка), doc (документ), prep (подготовка, шестиугольник), conn (соединитель-кружок), manual (ручной ввод)';
-const tplObj=()=>({format:'flowforge',version:'2.6',_instructions:{task:'ЗАМЕНИТЕ НА ВАШУ ЗАДАЧУ',types:TYPES_DOC,rules:['id — уникальные строки','x,y можно НЕ указывать: схема раскладывается автоматически','edges: {from,to,label?}','groups: рамки вокруг нескольких блоков (необязательно)'],edge_options:{route:'curve | ortho | line (необязательно)',dash:'solid | dashed | dotted | dashdot',arrow:'end | both | none',color:'#hex',width:'1..6'},example_node:{id:'n1',type:'terminal',text:'Начало'},example_edge:{from:'n1',to:'n2',label:'Да',dash:'dashed'},example_group:{id:'g1',title:'Склад',color:'#89b4fa',nodes:['n2','n3']}},nodes:[],edges:[],groups:[]});
-const promptTxt=()=>`Ты — генератор блок-схем для FlowForge Studio.\n\nЗАДАЧА: ЗАМЕНИ ЭТУ СТРОКУ НА ОПИСАНИЕ ЗАДАЧИ.\n\nВерни ТОЛЬКО JSON без markdown:\n{"format":"flowforge","version":"2.1","nodes":[{"id":"n1","type":"terminal","text":"Начало"}],"edges":[{"from":"n1","to":"n2","label":"Да"}],"groups":[{"id":"g1","title":"Этап 1","nodes":["n2","n3"]}]}\n\nТипы блоков: ${TYPES_DOC}.\nКоординаты x,y не нужны — раскладка автоматическая. У decision — две исходящие связи с label «Да»/«Нет».\nНеобязательно для связей: dash (solid|dashed|dotted|dashdot), arrow (end|both|none), route (curve|ortho|line), color (#hex).\ngroups — только если нужно визуально объединить блоки в этап или участок.`;
+const TYPES_DOC='terminal (овал: начало/конец), process (действие), decision (ромб: условие, 2 выхода «Да»/«Нет» в label связи), io (ввод/вывод), data (данные/БД), sub (подпроцесс), note (заметка), doc (документ), prep (подготовка, шестиугольник), conn (соединитель-кружок), manual (ручной ввод), check (чек-лист: поле ck с пунктами {t,d})';
+const tplObj=()=>({format:'flowforge',version:'2.7',_instructions:{task:'ЗАМЕНИТЕ НА ВАШУ ЗАДАЧУ',types:TYPES_DOC,rules:['id — уникальные строки','x,y можно НЕ указывать: схема раскладывается автоматически','edges: {from,to,label?}','groups: рамки вокруг нескольких блоков (необязательно)'],edge_options:{route:'curve | ortho | line (необязательно)',dash:'solid | dashed | dotted | dashdot',arrow:'end | both | none',color:'#hex',width:'1..6'},example_node:{id:'n1',type:'terminal',text:'Начало'},example_edge:{from:'n1',to:'n2',label:'Да',dash:'dashed'},example_group:{id:'g1',title:'Склад',color:'#89b4fa',nodes:['n2','n3']}},nodes:[],edges:[],groups:[]});
+const promptTxt=()=>`Ты — генератор блок-схем для FlowForge Studio.\n\nЗАДАЧА: ЗАМЕНИ ЭТУ СТРОКУ НА ОПИСАНИЕ ЗАДАЧИ.\n\nВерни ТОЛЬКО JSON без markdown:\n{"format":"flowforge","version":"2.1","nodes":[{"id":"n1","type":"terminal","text":"Начало"}],"edges":[{"from":"n1","to":"n2","label":"Да"}],"groups":[{"id":"g1","title":"Этап 1","nodes":["n2","n3"]}]}\n\nТипы блоков: ${TYPES_DOC}.\nКоординаты x,y не нужны — раскладка автоматическая. У decision — две исходящие связи с label «Да»/«Нет».\nНеобязательно для связей: dash (solid|dashed|dotted|dashdot), arrow (end|both|none), route (curve|ortho|line), color (#hex).\ngroups — только если нужно визуально объединить блоки в этап или участок.\nУ блока типа check задай пункты: "ck":[{"t":"Пункт","d":false}]. Любому блоку можно добавить "done":false, чтобы отслеживать его выполнение.`;
 
 const MENU=$('#menu'),ROUTE_N={curve:'плавные',ortho:'угловые',line:'прямые'};
 function tab(n){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab==n));document.querySelectorAll('[data-pane]').forEach(p=>p.hidden=p.dataset.pane!=n);if(n=='file')plist()}
@@ -323,11 +329,12 @@ svg(){NM=new Map(S.nodes.map(n=>[n.id,n]));dl(new Blob([svgStr().s],{type:'image
 async pdf(){if(!window.jspdf)return toast('PDF: нужна сеть для jsPDF');const{c,w,h}=await canvas(2,true),d=new jspdf.jsPDF({orientation:w>h?'l':'p',unit:'px',format:[w,h]});d.addImage(c.toDataURL('image/png'),'PNG',0,0,w,h);d.save(`${slug(pname())}-${stamp()}.pdf`)},
 async share(){const{c}=await canvas(2);c.toBlob(b=>{const f=new File([b],'flowforge.png',{type:'image/png'});navigator.canShare&&navigator.canShare({files:[f]})?navigator.share({files:[f]}).catch(()=>{}):dl(b,'flowforge.png')})},
 install(){window.dp&&window.dp.prompt()}};
-document.addEventListener('click',e=>{const b=e.target.closest('[data-a],[data-t],[data-add],[data-tab],[data-route],[data-sc],[data-bg],[data-close],[data-al],[data-tpl],[data-pj],[data-pdel],[data-lint],[data-rad],[data-gs]');if(!b)return;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a],[data-t],[data-add],[data-tab],[data-route],[data-sc],[data-bg],[data-close],[data-al],[data-tpl],[data-pj],[data-pdel],[data-lint],[data-rad],[data-gs],[data-pg]');if(!b)return;
 if(b.hasAttribute('data-close'))return MENU.close();
 if(b.dataset.al)return align(b.dataset.al);
 if(b.dataset.lint!=null)return lintGo(+b.dataset.lint);
 if(b.dataset.rad!=null)return setCfg('rad',+b.dataset.rad);if(b.dataset.gs)return setCfg('gs',+b.dataset.gs);
+if(b.dataset.pg){const n=N(b.dataset.pg);if(n)focusN(n);return}
 if(b.dataset.tpl!=null)return(MENU.close(),useTpl(+b.dataset.tpl));
 if(b.dataset.pj)return(MENU.close(),openProject(b.dataset.pj));
 if(b.dataset.pdel){if(b.dataset.arm){delete PJ[b.dataset.pdel];try{localStorage.ffProj=JSON.stringify(PJ)}catch{}return plist()}b.dataset.arm='1';b.textContent='Точно?';setTimeout(()=>{b.dataset.arm='';b.textContent='🗑'},2500);return}
@@ -353,8 +360,7 @@ if(bx)mv.forEach(n=>n.x=Math.round(n.x+bx.df));if(by)mv.forEach(n=>n.y=Math.roun
 const bb=bbox(),e=60,st='stroke="#f38ba8" stroke-width="1.2" stroke-dasharray="5 4"';ov=(bx?`<path d="M${bx.v} ${bb.y-e}V${bb.y+bb.h+e}" ${st}/>`:'')+(by?`<path d="M${bb.x-e} ${by.v}H${bb.x+bb.w+e}" ${st}/>`:'')}
 /* раскладка без dagre: слои по длиннейшему пути, порядок по барицентрам */
 function simpleLayout(dir){const nd=S.nodes,st=new Map(),back=new Set(),out=new Map(nd.map(n=>[n.id,[]]));S.edges.forEach(e=>out.get(e.from)&&out.get(e.from).push(e));
-const dfs=u=>{st.set(u,1);for(const e of out.get(u)){const v=e.to;if(!st.get(v))dfs(v);else if(st.get(v)==1)back.add(e.id)}st.set(u,2)};
-const hasIn=new Set(S.edges.map(e=>e.to));nd.filter(n=>!hasIn.has(n.id)).forEach(n=>{if(!st.get(n.id))dfs(n.id)});nd.forEach(n=>{if(!st.get(n.id))dfs(n.id)});
+backSet().forEach(x=>back.add(x));
 const rk=new Map(nd.map(n=>[n.id,0])),fe=S.edges.filter(e=>!back.has(e.id));
 for(let it=0;it<nd.length;it++){let ch=false;fe.forEach(e=>{if(rk.get(e.to)<rk.get(e.from)+1){rk.set(e.to,rk.get(e.from)+1);ch=true}});if(!ch)break}
 const L=[];nd.forEach(n=>{(L[rk.get(n.id)]=L[rk.get(n.id)]||[]).push(n)});const pos=new Map();
@@ -537,9 +543,26 @@ E --> F["Подготовить ответ гостю"]
 F --> G["Компенсация или исправление"]
 G --> H[["Запись в журнал жалоб"]]
 H --> I["Анализ причин и меры, чтобы не повторилось"]
-I --> J(["Закрыто"])`}];
+I --> J(["Закрыто"])`},
+{i:'☑',n:'Открытие смены (чек-листы)',d:'Отмечайте пункты прямо на схеме: режим выполнения ✅',j:{nodes:[
+{id:'s',type:'terminal',text:'Начало смены'},
+{id:'c1',type:'check',text:'Персонал',ck:[{t:'Медкнижки и допуски в порядке',d:false},{t:'Форма чистая и полная',d:false},{t:'Руки вымыты и обработаны',d:false},{t:'Нет признаков заболевания',d:false}]},
+{id:'c2',type:'check',text:'Оборудование',ck:[{t:'Плиты, печи и вытяжка исправны',d:false},{t:'Весы и термометры на месте',d:false},{t:'Холодильники работают',d:false}]},
+{id:'c3',type:'check',text:'Чистота и сырьё',ck:[{t:'Рабочие поверхности чистые',d:false},{t:'Сырьё промаркировано',d:false},{t:'Сроки годности проверены',d:false}]},
+{id:'d',type:'decision',text:'Всё в порядке?'},
+{id:'f',type:'process',text:'Устранить и сообщить ответственному',done:false},
+{id:'e',type:'terminal',text:'Смена начата',done:false}],
+edges:[{from:'s',to:'c1'},{from:'c1',to:'c2'},{from:'c2',to:'c3'},{from:'c3',to:'d'},{from:'d',to:'f',label:'Нет'},{from:'f',to:'c1'},{from:'d',to:'e',label:'Да'}],
+groups:[{id:'g1',title:'Проверки перед стартом',nodes:['c1','c2','c3']}]}},
+{i:'🌙',n:'Закрытие смены (чек-листы)',d:'Чек-листы с отметками и общим прогрессом',j:{nodes:[
+{id:'s',type:'terminal',text:'Конец смены'},
+{id:'c1',type:'check',text:'Продукция',ck:[{t:'Остатки промаркированы',d:false},{t:'Убраны в холод',d:false},{t:'Списание оформлено',d:false}]},
+{id:'c2',type:'check',text:'Оборудование и уборка',ck:[{t:'Оборудование выключено и вымыто',d:false},{t:'Поверхности продезинфицированы',d:false},{t:'Мусор вынесен',d:false}]},
+{id:'c3',type:'check',text:'Документы',ck:[{t:'Журналы заполнены',d:false},{t:'Температуры записаны',d:false},{t:'Замечания переданы',d:false}]},
+{id:'e',type:'terminal',text:'Смена закрыта',done:false}],
+edges:[{from:'s',to:'c1'},{from:'c1',to:'c2'},{from:'c2',to:'c3'},{from:'c3',to:'e'}],groups:[]}}];
 $('#tpllist').innerHTML=TPLS.map((t,i)=>`<button class="card" data-tpl="${i}"><i>${t.i}</i><b>${t.n}</b><small>${t.d}</small></button>`).join('');
-function useTpl(i){const t=TPLS[i],d=fromMermaid(t.m);newProject(t.n,d);if(d.dir=='LR')layout('LR');reveal();toast('Шаблон открыт как новая схема')}
+function useTpl(i){const t=TPLS[i],d=t.j?JSON.parse(JSON.stringify(t.j)):fromMermaid(t.m);newProject(t.n,d);if(d.dir=='LR')layout('LR');reveal();toast('Шаблон открыт как новая схема')}
 Object.assign(ACT,{
 lock(){const ns=[...sel].map(N).filter(Boolean);if(!ns.length)return;const v=!ns.every(n=>n.lock);ns.forEach(n=>v?n.lock=true:delete n.lock);commit();toast(v?'🔒 Закреплено':'🔓 Откреплено')},
 front(){const ns=S.nodes.filter(n=>sel.has(n.id));S.nodes=[...S.nodes.filter(n=>!sel.has(n.id)),...ns];commit()},
@@ -600,14 +623,6 @@ navigator.clipboard.writeText(url).then(()=>toast(url.length>6000?`🔗 Ссыл
 backup(){saveNow();dl(new Blob([JSON.stringify({format:'flowforge-backup',version:1,ts:Date.now(),projects:PJ},null,2)],{type:'application/json'}),`flowforge-backup-${stamp()}.json`);toast('🛟 Резервная копия сохранена. Восстановление: «Открыть»')}});
 $('#splashSw').onchange=e=>setCfg('splash',e.target.checked);
 /* ===== v2.5: запрет пересечений, быстрые действия, размеры, наложение ===== */
-function routeAll(){NCON=false;if(!cfg.nocross)return;if(S.edges.length>120){if(!NCW){NCW=true;toast('Запрет пересечений работает до 120 связей')}return}if(g&&g.t=='drag'&&g.mv)return;
-const key=NSIG+'|'+cfg.route+'|'+S.edges.map(e=>e.id+e.from+e.to+(e.route||'')+(e.pts?e.pts.join():'')).join(';');
-if(key!==NCK){NCK=key;NCV++;NCR=new Map();const segs=[],dist=e=>{const a=NM.get(e.from),b=NM.get(e.to);return Math.abs(a.x-b.x)+Math.abs(a.y-b.y)},todo=S.edges.filter(e=>!(e.pts&&e.pts.length)&&(e.route||'ortho')=='ortho'&&NM.has(e.from)&&NM.has(e.to)).sort((u,v)=>dist(u)-dist(v));
- todo.forEach(e=>{const a=NM.get(e.from),b=NM.get(e.to),s1=side(a,b),s2=side(b,a),r=route(a,b,s1,s2,pt(a,s1),pt(b,s2),segs);NCR.set(e.id,r);for(let i=1;i<r.length;i++){const[x1,y1]=r[i-1],[x2,y2]=r[i];segs.push([Math.min(x1,x2),Math.min(y1,y2),Math.max(x1,x2),Math.max(y1,y2)])}});
- NCX=[];const H=segs.filter(s=>s[1]==s[3]),V=segs.filter(s=>s[0]==s[2]);H.forEach(h=>V.forEach(v=>{if(v[0]>h[0]&&v[0]<h[2]&&h[1]>v[1]&&h[1]<v[3])NCX.push([v[0],h[1]])}))}
-NCON=true}
-function resolveOverlaps(ids){const mv=ids.map(N).filter(Boolean),oth=S.nodes.filter(n=>!ids.includes(n.id));let moved=false;
-for(let it=0;it<40;it++){let hit=false;for(const m of mv)for(const o of oth){const dx=Math.min(m.x+m.w,o.x+o.w)-Math.max(m.x,o.x),dy=Math.min(m.y+m.h,o.y+o.h)-Math.max(m.y,o.y);if(dx>0&&dy>0){hit=moved=true;const pad=14;if(dx<dy){const s=(m.x+m.w/2<o.x+o.w/2)?-1:1;mv.forEach(n=>n.x=Math.round(n.x+s*(dx+pad)))}else{const s=(m.y+m.h/2<o.y+o.h/2)?-1:1;mv.forEach(n=>n.y=Math.round(n.y+s*(dy+pad)))}}}if(!hit)break}return moved}
 /* быстрые действия: правая кнопка и долгое нажатие */
 const COLORS=['#a6e3a1','#89b4fa','#fab387','#cba6f7','#94e2d5','#f9e2af','#f38ba8','#f5c2e7','#cdd6f4'];
 let CTXF=[];
@@ -618,13 +633,13 @@ c.innerHTML=items.filter(Boolean).map(it=>{if(it.sep)return'<hr>';if(it.h)return
  return`<button class="ci${it.d?' d':''}" data-cx="${reg(it.f)}"><i>${it.i||''}</i><span>${esc(it.t)}</span>${it.k?`<kbd>${esc(it.k)}</kbd>`:''}</button>`}).join('');
 const sheet=matchMedia('(pointer:coarse)').matches||innerWidth<=700;c.classList.toggle('sheet',sheet);if(sheet){c.insertAdjacentHTML('afterbegin',`<div class="csh"><i></i><button data-cx="${reg(()=>{})}" aria-label="Закрыть">✕</button></div>`);c.hidden=false;c.style.left=c.style.top='';return}
 c.hidden=false;const w=c.offsetWidth,h=c.offsetHeight;c.style.left=Math.max(6,Math.min(cx,innerWidth-w-6))+'px';c.style.top=Math.max(6,Math.min(cy,innerHeight-h-6))+'px'}
-const setType=k=>{sel.forEach(i=>{const n=N(i);if(n){n.type=k;dim(n)}});commit()},setColor=c=>{sel.forEach(i=>{const n=N(i);if(n){c?n.color=c:delete n.color}});commit();insp()};
+const setType=k=>{sel.forEach(i=>{const n=N(i);if(n){n.type=k;if(k=='check'&&!(n.ck&&n.ck.length))n.ck=[{t:'Пункт 1',d:false},{t:'Пункт 2',d:false}];dim(n)}});commit()},setColor=c=>{sel.forEach(i=>{const n=N(i);if(n){c?n.color=c:delete n.color}});commit();insp()};
 function selConnected(){const s=new Set(sel);S.edges.forEach(e=>{if(sel.has(e.from))s.add(e.to);if(sel.has(e.to))s.add(e.from)});setSel([...s])}
 function addWpAt(cx,cy){const e=ed();if(!e)return;const w=toW({clientX:cx,clientY:cy}),q=NM.get(e.from)&&NM.get(e.to)&&geo(e);let bi=0,bd=1e18;((q&&q.hm)||[]).forEach((v,i)=>{const d=Math.hypot(v[0]-w.x,v[1]-w.y);if(d<bd){bd=d;bi=i}});e.pts=e.pts||[];e.pts.splice(bi,0,[G(w.x),G(w.y)]);commit()}
 function nodeItems(){const ns=[...sel].map(N).filter(Boolean),one=ns.length==1?ns[0]:null,all=ns.every(n=>n.lock);
 const it=[{h:one?NAMES[one.type]:`Блоков: ${ns.length}`}];
 if(one)it.push({i:'✏️',t:'Править текст',k:'Enter',f:()=>{$('#pt').focus();$('#pt').select()}},{i:'➕',t:'Добавить следующий',k:'Tab',f:addChild});
-it.push({i:'⧉',t:'Дублировать',k:'Ctrl+D',f:ACT.dup},{sep:1},{h:'Тип'},{row:Object.keys(T).map(k=>({svg:miniIcon(k,30),t:NAMES[k],on:one&&one.type==k,f:()=>setType(k)}))},
+it.push({i:'⧉',t:'Дублировать',k:'Ctrl+D',f:ACT.dup},...(one?[{i:'☑',t:one.ck&&one.ck.length?'Править чек-лист':'Добавить чек-лист',f:ACT.ckadd}]:[]),{i:'✅',t:ns.every(n=>trk(n)&&comp(n))?'Снять отметку выполнения':'Отметить выполненным',f:markSel},{i:'🎯',t:ns.every(trk)?'Не отслеживать выполнение':'Отслеживать выполнение',f:trackSel},{sep:1},{h:'Тип'},{row:Object.keys(T).map(k=>({svg:miniIcon(k,30),t:NAMES[k],on:one&&one.type==k,f:()=>setType(k)}))},
 {h:'Цвет'},{row:[...COLORS.map(c=>({c,t:c,f:()=>setColor(c)})),{i:'↺',t:'Сбросить цвет',f:()=>setColor(null)}]},
 {h:'Размер'},{row:[{l:'Авто',t:'Размер по тексту',f:ACT.autosz},{l:'Фикс',t:'Зафиксировать текущий размер',f:ACT.sizefix},{l:'−',t:'Меньше',f:ACT.sizeminus},{l:'+',t:'Больше',f:ACT.sizeplus}]},
 {sep:1},{i:all?'🔓':'🔒',t:all?'Открепить':'Закрепить на месте',f:ACT.lock},{i:'⬆',t:'На передний план',f:ACT.front},{i:'⬇',t:'На задний план',f:ACT.back},{i:'🔗',t:'Выделить связанные',f:selConnected});
@@ -641,7 +656,7 @@ function groupItems(){const g0=gr();if(!g0)return[];return[{h:'Группа'},{i
 function canvasItems(cx,cy){const w=toW({clientX:cx,clientY:cy}),rot=Math.abs(cr())>.001;
 return[{h:'Добавить блок здесь'},{row:Object.keys(T).map(k=>({svg:miniIcon(k,30),t:NAMES[k],f:()=>{const n=addNode(k,w.x-60,w.y-28);sel=new Set([n.id]);selE=null;selG=null;commit()}}))},{sep:1},
 {i:'📋',t:'Вставить',k:'Ctrl+V',f:paste},{i:'☑',t:'Выделить всё',k:'Ctrl+A',f:()=>setSel(S.nodes.map(n=>n.id))},{sep:1},
-{i:'⛶',t:'Показать всё',k:'F',f:fit},rot?{i:'🧭',t:'Выровнять лист',f:unrot}:null,{i:'↕',t:'Авто-раскладка вниз',f:()=>layout('TB')},{i:'↔',t:'Авто-раскладка вправо',f:()=>layout('LR')},{sep:1},
+{i:'⛶',t:'Показать всё',k:'F',f:fit},rot?{i:'🧭',t:'Выровнять лист',f:unrot}:null,{i:'↕',t:'Авто-раскладка вниз',f:()=>layout('TB')},{i:'↔',t:'Авто-раскладка вправо',f:()=>layout('LR')},{i:'⤢',t:'Раздвинуть блоки на 15%',f:ACT.spread},cfg.nocross?{i:'✂',t:'Улучшить расположение линий',f:ACT.ncdeep}:null,{i:'☑',t:'Прогресс выполнения',f:ACT.prog},{sep:1},
 {i:'🩺',t:'Проверить схему',f:lintShow},{i:'▦',t:cfg.grid?'Скрыть сетку':'Показать сетку',f:()=>setCfg('grid',!cfg.grid)},{i:'👁',t:'Режим просмотра',f:()=>viewMode()},{i:'☰',t:'Меню и настройки',f:()=>openMenu('file')}]}
 function ctxFor(t,cx,cy){ctxClose();const T0=t&&t.closest?t:null;
 if(document.body.classList.contains('vw'))return ctxOpen([{i:'⛶',t:'Показать всё',k:'F',f:fit},Math.abs(cr())>.001?{i:'🧭',t:'Выровнять лист',f:unrot}:null,{i:'✕',t:'Выйти из просмотра',k:'Esc',f:()=>viewMode(false)}],cx,cy);
@@ -665,6 +680,87 @@ sizeplus(){sel.forEach(i=>{const n=N(i);if(n){n.sw=Math.round((n.sw||n.w)*1.12);
 $('#pb').onchange=e=>{const v=e.target.value;sel.forEach(i=>{const n=N(i);if(n){v?n.bd=v:delete n.bd}});commit()};
 $('#nocross').onchange=e=>{NCK='';NCW=false;setCfg('nocross',e.target.checked)};$('#noover').onchange=e=>setCfg('noover',e.target.checked);$('#trace').onchange=e=>setCfg('trace',e.target.checked);
 ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
+/* ===== v2.7: мягкие правила (без ограничений), чек-листы и выполнение ===== */
+let NCT=0,NCJ=null,NCDONE=false,NCPROG=0,NCDEEP=false,progArm=false;
+const FLATS={process:'tblr',sub:'tblr',note:'tblr',check:'tblr',doc:'tlr',terminal:'tb',io:'tb',prep:'tb',data:'lr',manual:'blr'};
+function slotSpan(n,s){const t=n.type;if(!(FLATS[t]||'').includes(s))return null;
+ if(s=='t'||s=='b'){let lo=n.x+12,hi=n.x+n.w-12;if(t=='terminal'){lo=n.x+n.h/2;hi=n.x+n.w-n.h/2}else if(t=='io'){const k=n.h*.3;if(s=='t'){lo=n.x+k+4;hi=n.x+n.w-4}else{lo=n.x+4;hi=n.x+n.w-k-4}}else if(t=='prep'){const k=Math.min(n.h*.4,n.w/4);lo=n.x+k+4;hi=n.x+n.w-k-4}return hi>lo?[lo,hi]:null}
+ let lo=n.y+10,hi=n.y+n.h-10;if(t=='doc')hi=n.y+n.h-22;if(t=='manual'&&s=='l')lo=n.y+n.h*.22+8;return hi>lo?[lo,hi]:null}
+function assignSlots(info){const att=new Map();
+ info.forEach(it=>{[[it.a,it.s1,it.b,'p'],[it.b,it.s2,it.a,'q']].forEach(([n,s,o,k])=>{const key=n.id+'|'+s;if(!att.has(key))att.set(key,[]);att.get(key).push({it,k,n,s,ox:o.x+o.w/2,oy:o.y+o.h/2})})});
+ att.forEach(list=>{const{n,s}=list[0],sp=slotSpan(n,s),hz=s=='t'||s=='b';list.sort((u,v)=>hz?u.ox-v.ox:u.oy-v.oy);list.forEach((a,i)=>{let q;if(sp){const v=sp[0]+(sp[1]-sp[0])*(i+1)/(list.length+1);q=hz?[v,s=='t'?n.y:n.y+n.h]:[s=='l'?n.x:n.x+n.w,v]}else q=pt(n,s);a.it[a.k]=q})})}
+const ncKey=()=>nsig()+'|'+cfg.route+'|'+S.edges.map(e=>e.id+e.from+e.to+(e.route||'')+(e.pts?e.pts.join():'')).join(';');
+const xcount=(F,id)=>{let c=0;const mine=F.filter(s=>s[4]==id),oth=F.filter(s=>s[4]!=id);for(const m of mine){const mh=m[1]==m[3],mv=m[0]==m[2];for(const o of oth){const oh=o[1]==o[3],ov=o[0]==o[2];if(mh&&ov&&o[0]>m[0]&&o[0]<m[2]&&m[1]>o[1]&&m[1]<o[3])c++;else if(mv&&oh&&m[0]>o[0]&&m[0]<o[2]&&o[1]>m[1]&&o[1]<m[3])c++}}return c};
+const plen=r=>{let l=0;for(let i=1;i<r.length;i++)l+=Math.abs(r[i][0]-r[i-1][0])+Math.abs(r[i][1]-r[i-1][1]);return l};
+/* Мягкий запрет пересечений: считаем в фоне, без лимита на размер схемы. Если обойти нельзя, линия пересекает (исключение) и место помечается */
+function routeAll(){NCON=false;if(!cfg.nocross)return;if(g&&g.t=='drag'&&g.mv){if(NCJ)NCJ.cancel=true;return}
+ const key=ncKey();if(NCDONE&&key===NCK){NCON=true;return}
+ if(NCJ&&NCJ.key===key&&!NCJ.cancel)return;
+ if(NCJ)NCJ.cancel=true;clearTimeout(NCT);NCT=setTimeout(()=>ncStart(key),150)}
+function ncStart(key){NCT=0;const job=NCJ={key,cancel:false},nmx=new Map(S.nodes.map(n=>[n.id,n])),deep=NCDEEP;
+ const items=S.edges.filter(e=>!(e.pts&&e.pts.length)&&(e.route||'ortho')=='ortho'&&nmx.has(e.from)&&nmx.has(e.to)).map(e=>{const a=nmx.get(e.from),b=nmx.get(e.to);return{e,a,b,s1:side(a,b),s2:side(b,a)}});
+ assignSlots(new Map(items.map(it=>[it.e.id,it])));
+ items.sort((u,v)=>(Math.abs(u.a.x-u.b.x)+Math.abs(u.a.y-u.b.y))-(Math.abs(v.a.x-v.b.x)+Math.abs(v.a.y-v.b.y)));
+ let F=[];const res=new Map(),own=new Map();let ph=0,ix=0,pass=0,list=null,lix=0,tot=items.length,done=0;NCPROG=0;
+ const addSegs=(id,r)=>{const arr=[];for(let i=1;i<r.length;i++){const[x1,y1]=r[i-1],[x2,y2]=r[i];arr.push([Math.min(x1,x2),Math.min(y1,y2),Math.max(x1,x2),Math.max(y1,y2),id])}own.set(id,arr);F.push(...arr)},rm=id=>{F=F.filter(s=>s[4]!=id)};
+ const one=(it,s1,s2,p,q)=>route(it.a,it.b,s1,s2,p||pt(it.a,s1),q||pt(it.b,s2),F);
+ const alts=it=>{const per=s=>s=='t'||s=='b'?['l','r']:['t','b'],o=[];[it.s1,...per(it.s1)].forEach(a=>[it.s2,...per(it.s2)].forEach(b=>{if(!(a==it.s1&&b==it.s2))o.push([a,b])}));return o};
+ const finish=()=>{if(job.cancel){if(NCJ===job)NCJ=null;return}if(ncKey()!==key){NCJ=null;NCDEEP=false;draw();return}
+  NCR=res;NCX=[];const H=F.filter(s=>s[1]==s[3]),V=F.filter(s=>s[0]==s[2]);H.forEach(h=>V.forEach(v=>{if(h[4]!=v[4]&&v[0]>h[0]&&v[0]<h[2]&&h[1]>v[1]&&h[1]<v[3])NCX.push([v[0],h[1]])}));
+  NCK=key;NCV++;NCDONE=true;NCJ=null;NCDEEP=false;NCPROG=100;draw();if(deep)toast(NCX.length?`Линии улучшены. Осталось пересечений: ${NCX.length} (где иначе не пройти)`:'Линии улучшены: пересечений нет')};
+ const step=()=>{if(job.cancel){if(NCJ===job)NCJ=null;return}const t0=performance.now();let fin=false;
+  while(performance.now()-t0<12){
+   if(ph==0){if(ix>=items.length){ph=1;continue}const it=items[ix++],r=one(it,it.s1,it.s2,it.p,it.q);res.set(it.e.id,r);addSegs(it.e.id,r);done++}
+   else{if(!list){if(pass>=(deep?6:2)){fin=true;break}list=items.map(it=>({it,c:xcount(F,it.e.id)})).filter(x=>x.c>0).sort((u,v)=>v.c-u.c);lix=0;tot+=list.length;if(!list.length){fin=true;break}}
+    if(lix>=list.length){list=null;pass++;continue}
+    const{it}=list[lix++],id=it.e.id,c0=xcount(F,id);done++;if(!c0)continue;const old=res.get(id),oldLen=plen(old);rm(id);
+    let best=one(it,it.s1,it.s2,it.p,it.q);addSegs(id,best);let bc=xcount(F,id),bl=plen(best);rm(id);
+    if(deep&&bc>0)for(const[a,b]of alts(it)){const r=one(it,a,b);addSegs(id,r);const c=xcount(F,id),l=plen(r);rm(id);if(c<bc||(c==bc&&l<bl)){best=r;bc=c;bl=l}if(!bc)break}
+    if(bc<c0||(bc==c0&&bl<oldLen*.98)){res.set(id,best);addSegs(id,best)}else addSegs(id,old)}}
+  NCPROG=Math.min(99,Math.round(done*100/Math.max(1,tot)));const x=document.getElementById('ncx');if(x)x.textContent='✂ '+NCPROG+'%…';
+  if(fin)finish();else setTimeout(step,0)};
+ step()}
+/* Мягкий запрет наложения: ищем ближайшее свободное место; если его нет, блок остаётся (исключение) */
+function resolveOverlaps(ids){const mv=ids.map(N).filter(Boolean);if(!mv.length)return false;const oth=S.nodes.filter(n=>!ids.includes(n.id)),pad=10;
+ const hits=()=>{for(const m of mv)for(const o of oth)if(m.x<o.x+o.w+pad&&m.x+m.w+pad>o.x&&m.y<o.y+o.h+pad&&m.y+m.h+pad>o.y)return true;return false};
+ if(!hits())return false;const ox=mv.map(n=>n.x),oy=mv.map(n=>n.y),t0=performance.now(),st=cfg.gs||20;
+ for(let r=st;r<=900;r+=st){if(performance.now()-t0>35)break;const c=[];for(let d=-r;d<=r;d+=st)c.push([d,-r],[d,r],[-r,d],[r,d]);c.sort((u,v)=>Math.hypot(u[0],u[1])-Math.hypot(v[0],v[1]));
+  for(const[dx,dy]of c){mv.forEach((n,i)=>{n.x=ox[i]+dx;n.y=oy[i]+dy});if(!hits())return'moved'}}
+ mv.forEach((n,i)=>{n.x=ox[i];n.y=oy[i]});return'none'}
+/* чек-листы и выполнение */
+const trk=n=>!!(n.ck&&n.ck.length)||n.done!==undefined,comp=n=>n.ck&&n.ck.length?n.ck.every(i=>i.d):n.done===true;
+function ckSvg(n,f,fs,lh){let y=n.y+10+(n.L.length)*lh+8,o=`<path d="M${n.x+10} ${y-6}H${n.x+n.w-10}" stroke="${ink(f)}" stroke-opacity=".25" stroke-width="1"/>`;const ic=ink(f),n2=n.ck.length;
+ n.ck.forEach((it,i)=>{const lines=(n.IL&&n.IL[i])||[it.t],hg=lines.length*lh,bx=n.x+12,by=y+(lh-fs)/2-1;
+  o+=`<g data-ck="${n.id}:${i}" style="cursor:pointer"><rect x="${n.x+6}" y="${y-2}" width="${n.w-12}" height="${hg+2}" fill="transparent"/><rect x="${bx}" y="${by}" width="${fs}" height="${fs}" rx="3" fill="${it.d?'#a6e3a1':'none'}" stroke="${it.d?'#40a02b':ic}" stroke-width="1.4"/>${it.d?`<path d="M${bx+fs*.22} ${by+fs*.54}l${fs*.2} ${fs*.22}l${fs*.38}-${fs*.48}" stroke="#1e1e2e" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`:''}<text font-size="${fs-1}" fill="${ic}" opacity="${it.d?.5:1}"${it.d?' text-decoration="line-through"':''}>${lines.map((s,j)=>`<tspan x="${bx+fs+6}" y="${y+fs*.85+j*lh}">${esc(s)}</tspan>`).join('')}</text></g>`;y+=hg+2});
+ const d=n.ck.filter(x=>x.d).length;o+=`<rect x="${n.x+10}" y="${n.y+n.h-8}" width="${n.w-20}" height="3" rx="1.5" fill="#0004"/><rect x="${n.x+10}" y="${n.y+n.h-8}" width="${(n.w-20)*d/Math.max(1,n2)}" height="3" rx="1.5" fill="#a6e3a1"/>`;return o}
+function badgeSvg(n,cm){const x=n.x,y=n.y;return`<g data-ck="${n.id}:all" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="11" fill="${cm?'#a6e3a1':'#1e1e2e'}" stroke="${cm?'#40a02b':'#a6adc8'}" stroke-width="1.8"/>${cm?`<path d="M${x-5} ${y}l3.5 3.5 6-7" stroke="#1e1e2e" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`:''}</g>`}
+function toggleCk(k){const[id,i]=k.split(':'),n=N(id);if(!n)return;if(i=='all'){if(n.ck&&n.ck.length){const all=n.ck.every(x=>x.d);n.ck.forEach(x=>x.d=!all)}else n.done=!n.done}else if(n.ck&&n.ck[+i])n.ck[+i].d=!n.ck[+i].d;commit()}
+function backSet(){const out=new Map(S.nodes.map(n=>[n.id,[]])),hasIn=new Set(),back=new Set(),st=new Map();S.edges.forEach(e=>{if(out.has(e.from)&&out.has(e.to)){out.get(e.from).push(e);hasIn.add(e.to)}});
+ const run=r=>{if(st.get(r))return;const stack=[[r,0]];st.set(r,1);while(stack.length){const top=stack[stack.length-1],ed=out.get(top[0]);if(top[1]<ed.length){const e=ed[top[1]++],v=e.to;if(!st.get(v)){st.set(v,1);stack.push([v,0])}else if(st.get(v)==1)back.add(e.id)}else{st.set(top[0],2);stack.pop()}}};
+ S.nodes.filter(n=>!hasIn.has(n.id)).forEach(n=>run(n.id));S.nodes.forEach(n=>run(n.id));return back}
+function availSet(){const T=S.nodes.filter(trk),out=new Set();if(!T.length)return out;const inc=new Map(),nm=new Map(S.nodes.map(n=>[n.id,n]));const bk=backSet();S.edges.forEach(e=>{if(bk.has(e.id))return;if(!inc.has(e.to))inc.set(e.to,[]);inc.get(e.to).push(e.from)});
+ T.forEach(n=>{if(comp(n))return;const seen=new Set([n.id]),st=[...(inc.get(n.id)||[])];let ok=true;while(st.length&&ok){const u=st.pop();if(seen.has(u))continue;seen.add(u);const m=nm.get(u);if(!m)continue;if(trk(m)){if(!comp(m))ok=false}else(inc.get(u)||[]).forEach(v=>st.push(v))}if(ok)out.add(n.id)});return out}
+function progStats(){const T=S.nodes.filter(trk),D=T.filter(comp);let it=0,itd=0;T.forEach(n=>{if(n.ck){it+=n.ck.length;itd+=n.ck.filter(x=>x.d).length}});return{tn:T.length,dn:D.length,it,itd}}
+function progShow(){const st=progStats(),pct=st.tn?Math.round(st.dn*100/st.tn):0,av=[...availSet()].map(N).filter(Boolean);
+ let h=st.tn?`<div class="pbar"><i style="width:${pct}%"></i></div><p class="lsum">Выполнено блоков: ${st.dn} из ${st.tn} (${pct}%)${st.it?` · пунктов: ${st.itd} из ${st.it}`:''}</p>`:'<p class="lsum">Пока нечего отслеживать. Добавьте блоку чек-лист (правая кнопка, «Добавить чек-лист») или включите «Отслеживать выполнение».</p>';
+ const gs=S.groups.map(gp=>{const m=gp.nodes.map(N).filter(n=>n&&trk(n));if(!m.length)return'';const d=m.filter(comp).length,p=Math.round(d*100/m.length);return`<div class="pg"><div><b>${esc(gp.title)}</b><small>${d}/${m.length}</small></div><div class="pbar s"><i style="width:${p}%"></i></div></div>`}).join('');
+ if(gs)h+='<h5>По группам</h5>'+gs;
+ if(av.length)h+='<h5>Следующие шаги</h5>'+av.slice(0,10).map(n=>`<button class="li" data-pg="${n.id}"><b>▶</b><span>${esc(n.text.slice(0,70))}</span></button>`).join('')+(av.length>10?`<p class="lsum">…и ещё ${av.length-10}</p>`:'');
+ h+=`<div class="row2"><button data-a="runtool" class="${tool=='run'?'on':''}">✅ Режим выполнения</button><button data-a="progreset" class="d">Сбросить</button></div>`;$('#progl').innerHTML=h;$('#progp').hidden=false}
+const ensureCk=n=>{if(!n.ck||!n.ck.length)n.ck=[{t:'Пункт 1',d:false}]};
+function parseCk(txt,old){return txt.split('\n').map((l,i)=>{let d=null;const m=l.match(/^\s*\[(x|х|✓|✔| )\]\s?/i);if(m){d=m[1]!=' ';l=l.slice(m[0].length)}l=l.trim();if(!l)return null;const o=old&&old.find(x=>x.t==l);return{t:l,d:d!==null?d:(o?o.d:false)}}).filter(Boolean)}
+Object.assign(ACT,{ncdeep(){NCDEEP=true;NCDONE=false;NCK='';toast('Улучшаю расположение линий…');draw()},
+spread(){const b=bbox(),cx=b.x+b.w/2,cy=b.y+b.h/2;S.nodes.forEach(n=>{if(!n.lock){n.x=G(cx+(n.x-cx)*1.15);n.y=G(cy+(n.y-cy)*1.15)}});commit();toast('Блоки раздвинуты на 15%, линиям стало просторнее')},
+prog(){if($('#progp').hidden)progShow();else $('#progp').hidden=true},progx(){$('#progp').hidden=true},
+runtool(){setTool(tool=='run'?'select':'run');if(tool=='run')toast('Режим выполнения: нажимайте на блоки и пункты, чтобы отмечать выполненное');if(!$('#progp').hidden)progShow()},
+progreset(){if(progArm){S.nodes.forEach(n=>{if(n.ck)n.ck.forEach(x=>x.d=false);if(n.done!==undefined)n.done=false});progArm=false;commit();toast('Выполнение сброшено')}else{progArm=true;toast('Нажмите «Сбросить» ещё раз, чтобы подтвердить');setTimeout(()=>progArm=false,3000)}},
+ckall(){const n=sel.size==1?N([...sel][0]):null;if(!n)return;if(n.ck&&n.ck.length)n.ck.forEach(x=>x.d=true);else if(n.done!==undefined)n.done=true;commit();insp()},
+ckclr(){const n=sel.size==1?N([...sel][0]):null;if(!n)return;if(n.ck&&n.ck.length)n.ck.forEach(x=>x.d=false);else if(n.done!==undefined)n.done=false;commit();insp()},
+ckadd(){const n=sel.size==1?N([...sel][0]):null;if(!n)return;ensureCk(n);dim(n);commit();insp();setTimeout(()=>{$('#pck').focus();$('#pck').select()},40)}});
+$('#pck').oninput=e=>{const n=N([...sel][0]);if(!n)return;const ck=parseCk(e.target.value,n.ck);if(ck.length)n.ck=ck;else delete n.ck;dim(n);draw()};$('#pck').onchange=commit;
+$('#ptrk').onchange=e=>{const n=N([...sel][0]);if(!n)return;if(e.target.checked){if(n.done===undefined)n.done=false}else if(!(n.ck&&n.ck.length))delete n.done;commit();insp()};
+function markSel(){const ns=[...sel].map(N).filter(Boolean),all=ns.every(n=>trk(n)&&comp(n));ns.forEach(n=>{if(n.ck&&n.ck.length)n.ck.forEach(x=>x.d=!all);else n.done=!all});commit()}
+function trackSel(){const ns=[...sel].map(N).filter(Boolean),all=ns.every(trk);ns.forEach(n=>{if(all){if(!(n.ck&&n.ck.length))delete n.done}else if(n.done===undefined)n.done=false});commit()}
 const saved=(PJ[cfg.pid]&&PJ[cfg.pid].d)||LS('ffDoc',null);
 if(saved&&Array.isArray(saved.nodes)&&saved.nodes.length){try{setDoc(saved)}catch{demo()}}else demo();
 setTool('select');syncUI();

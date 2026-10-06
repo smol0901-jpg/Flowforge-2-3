@@ -92,3 +92,14 @@ input,textarea,select,.panes,.note{-webkit-user-select:text;user-select:text}
 @media(max-width:700px){#s-del{display:none!important}}
 @media(min-width:701px){.ih .d{display:none}}
 .ih .d{min-width:36px}
+
+/* v2.7 */
+#progp{position:absolute;top:104px;left:10px;width:min(340px,calc(100% - 20px));max-height:60%;overflow:auto;background:rgba(24,24,37,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--l2);border-radius:12px;padding:10px;z-index:5;box-shadow:0 8px 30px #0008}#progp[hidden]{display:none}
+#progl{display:grid;gap:6px}#progl h5{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--m);margin-top:6px}
+.pbar{height:10px;border-radius:5px;background:var(--l);overflow:hidden}.pbar i{display:block;height:100%;background:linear-gradient(90deg,#40a02b,#a6e3a1);border-radius:5px;transition:width .3s}.pbar.s{height:6px}
+.pg>div:first-child{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;margin-bottom:3px}.pg small{color:var(--m)}
+.row2{display:flex;gap:6px;margin-top:6px}.row2 button{flex:1}
+label.mini{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--t)}label.mini input{width:auto}
+#progBtn{min-width:46px}
+#s-ck textarea{font-size:13px}
+@media(max-width:700px){#progp{top:100px}#s-ck .row{display:none}}
