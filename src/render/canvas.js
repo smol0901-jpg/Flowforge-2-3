@@ -1,5 +1,6 @@
 /* FlowForge · render/canvas — SVG-сцена: viewport, culling, частичный рендер, экспорт */
 import { NS, esc, dk, ink } from '../core/util.js';
+import { patchChildren } from '../core/dom.js';
 import { doc, camera, getSel, getSelE, getSelG, nodes, edges, groups, N } from '../core/state.js';
 import { geo, rpath, NV, pt, bbox, nodeSig, clearRouteCache } from './geom.js';
 import { shp, defsSVG } from './shapes.js';
@@ -209,7 +210,7 @@ function fullRender(c, cfg) {
   const b = body(false, cfg, window.__dragSet || null);
   const MC = new Set([P.edge]);
   edges().forEach(e => MC.add(e.color || P.edge));
-  world.innerHTML = defsSVG(MC) + b;
+  patchChildren(world, defsSVG(MC) + b);
   applyView(c, P);
   lastFullKey = viewKey(c);
 }
@@ -237,6 +238,7 @@ export function frame(cfg, statusFn) {
   const vb = viewB(c);
   const inside = RB && !full && vb.x >= RB.x && vb.y >= RB.y && vb.x + vb.w <= RB.x + RB.w && vb.y + vb.h <= RB.y + RB.h && Math.abs(c.k / rk0 - 1) < .35 && (c.k < .5) == (rk0 < .5);
   if (inside && viewKey(c) !== lastFullKey) fastCam(c); else fullRender(c, cfg);
+  if (window.__gridEl) import('./grid.js').then(m => m.paintGrid(window.__gridEl, (PAL[cfg.bg] || PAL.dark).dot, cfg.gs)).catch(() => { });
   if (statusFn) statusFn(c);
 }
 export const draw = (cfg, statusFn) => { full = true; cancelAnimationFrame(raf); raf = requestAnimationFrame(() => frame(cfg, statusFn)); tickAnim(cfg, statusFn); };
