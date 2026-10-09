@@ -103,3 +103,23 @@ label.mini{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--
 #progBtn{min-width:46px}
 #s-ck textarea{font-size:13px}
 @media(max-width:700px){#progp{top:100px}#s-ck .row{display:none}}
+
+/* v2.8: фигуры, редактор, QR */
+dialog.sheet.wide{width:min(720px,100vw)}
+#pal button.more{opacity:.9}#pal button.more i{font:normal 22px/1 system-ui}
+.shsearch{padding:6px 16px 0}.shgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;padding-top:10px}
+.shi{position:relative}.shb{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;min-height:92px;white-space:normal;text-align:center;font-size:11.5px;line-height:1.2}.shb b{font-size:28px}.shb svg{display:block}
+.sht{position:absolute;top:4px;min-width:26px;min-height:26px;padding:0;font-size:12px;box-shadow:none}.sht[data-shed]{left:4px}.sht[data-shdel]{right:4px}
+.shi.new .shb{border-style:dashed}
+.edtools{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:6px 0}.edtools button{min-width:36px}
+#edsvg{width:100%;max-width:420px;display:block;margin:6px auto;background:#11111b;border-radius:12px;touch-action:none;user-select:none}
+.edrow{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.edrow>*{flex:1;min-width:120px}.edrow label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--m)}
+#edprev{width:100%;max-width:420px;display:block;margin:0 auto;background:#11111b;border-radius:12px}
+.filebtn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border:2px dashed var(--l2);border-radius:12px;cursor:pointer;margin:10px 0}.filebtn input{position:absolute;opacity:0;pointer-events:none}
+#edimgprev img{max-width:100%;max-height:220px;display:block;margin:8px auto;border-radius:10px;background:repeating-conic-gradient(#8883 0 25%,#0000 0 50%) 0 0/16px 16px}
+.se-foot{display:flex;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--l);background:var(--s)}.se-foot input{flex:1;min-width:0}
+.qrbox{background:#fff;border-radius:16px;padding:10px;max-width:320px;margin:10px auto}.qrbox svg{display:block;width:100%;height:auto}
+.qrl{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--m);margin:10px 0}
+@media(max-width:700px){dialog.sheet.wide{width:100%}.shgrid{grid-template-columns:repeat(3,1fr)}}
+#pal button{flex:0 0 auto}#insp #pty{min-width:0;flex:2}
+.shb svg{max-width:100%}
